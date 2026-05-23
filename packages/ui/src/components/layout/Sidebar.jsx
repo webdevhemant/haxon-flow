@@ -10,7 +10,7 @@ import {
     IconTool, IconLock, IconVariable, IconKey, IconFiles, IconDatabase,
     IconTestPipe, IconChartHistogram, IconList, IconSettings, IconChevronLeft,
     IconChevronRight, IconBolt, IconBrain, IconBook2, IconPackage,
-    IconChartBar, IconServer2, IconPlugConnected, IconActivity, IconZap
+    IconChartBar, IconServer2, IconPlugConnected, IconActivity
 } from '@tabler/icons-react'
 
 const NAV = [
