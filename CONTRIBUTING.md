@@ -30,21 +30,21 @@ Found an issue? [Report it](https://github.com/FlowiseAI/Flowise/issues/new/choo
 
 Not sure what to contribute? Some ideas:
 
--   Create new components from `packages/components`
--   Update existing components such as extending functionality, fixing bugs
--   Add new chatflow ideas
+- Create new components from `packages/components`
+- Update existing components such as extending functionality, fixing bugs
+- Add new chatflow ideas
 
 ### Developers
 
 Flowise has 3 different modules in a single mono repository.
 
--   `server`: Node backend to serve API logics
--   `ui`: React frontend
--   `components`: Third-party nodes integrations
+- `server`: Node backend to serve API logics
+- `ui`: React frontend
+- `components`: Third-party nodes integrations
 
 #### Prerequisite
 
--   Install [PNPM](https://pnpm.io/installation). The project is configured to use pnpm v10.
+- Install [PNPM](https://pnpm.io/installation). The project is configured to use pnpm v10.
     ```bash
     npm i -g pnpm
     ```
@@ -56,7 +56,6 @@ Flowise has 3 different modules in a single mono repository.
 2. Clone your forked repository.
 
 3. Create a new branch, see [guide](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-and-deleting-branches-within-your-repository). Naming conventions:
-
     - For feature branch: `feature/<Your New Feature>`
     - For bug fix branch: `bugfix/<Your New Bugfix>`.
 
@@ -87,7 +86,6 @@ Flowise has 3 different modules in a single mono repository.
     ```
 
 9. For development:
-
     - Create `.env` file and specify the `VITE_PORT` (refer to `.env.example`) in `packages/ui`
     - Create `.env` file and specify the `PORT` (refer to `.env.example`) in `packages/server`
     - Run
@@ -126,28 +124,28 @@ The server redacts both `url` and `password` fields before returning credential 
 
 Use `type: 'url'` for connection strings with embedded credentials:
 
--   Connection URLs that embed a username/password (e.g. `mongodb+srv://user:pass@host/db`, `redis://:pass@host`, `postgresql://user:pass@host/db`)
--   Displayed with the password portion masked (e.g. `mongodb+srv://user:••••••@host/db`); users with edit permission can reveal the full URL
+- Connection URLs that embed a username/password (e.g. `mongodb+srv://user:pass@host/db`, `redis://:pass@host`, `postgresql://user:pass@host/db`)
+- Displayed with the password portion masked (e.g. `mongodb+srv://user:••••••@host/db`); users with edit permission can reveal the full URL
 
 Use `type: 'password'` for opaque secrets with no meaningful preview:
 
--   API keys, access keys, secret keys, tokens
--   JSON blobs containing private keys or certificates (e.g. Google service account JSON)
--   Fully redacted in the UI; users must replace the entire value to update them
+- API keys, access keys, secret keys, tokens
+- JSON blobs containing private keys or certificates (e.g. Google service account JSON)
+- Fully redacted in the UI; users must replace the entire value to update them
 
 Fields that are safe as `type: 'string'`:
 
--   Usernames / account names (when the password is a separate field)
--   Region, host, port, database name, project ID
--   Non-secret identifiers and configuration values
+- Usernames / account names (when the password is a separate field)
+- Region, host, port, database name, project ID
+- Non-secret identifiers and configuration values
 
 If in doubt, use `type: 'password'`. The only cost is that the field must be re-entered on edit; the cost of using `type: 'string'` for a secret is that it is exposed via the API.
 
 ### Testing
 
--   Unit tests are **co-located** with their source files — a test for `Foo.ts` lives in `Foo.test.ts` in the same directory. This is the standard used across all packages in this repo.
+- Unit tests are **co-located** with their source files — a test for `Foo.ts` lives in `Foo.test.ts` in the same directory. This is the standard used across all packages in this repo.
 
--   Run tests per package:
+- Run tests per package:
 
     ```bash
     cd packages/server && pnpm test
@@ -163,13 +161,13 @@ If in doubt, use `type: 'password'`. The only cost is that the field must be re-
     pnpm --filter "./packages/server" test # root and server share the same package name.
     ```
 
--   Or run all tests from the repo root:
+- Or run all tests from the repo root:
 
     ```bash
     pnpm test
     ```
 
--   When adding new functionality, place your test file next to the source file it tests:
+- When adding new functionality, place your test file next to the source file it tests:
 
     ```
     packages/components/nodes/tools/MyTool/

@@ -1,0 +1,136 @@
+export const marketplaces = [
+    {
+        id: 'mkt-001',
+        name: 'Customer Support Agent',
+        description: 'Production-ready multi-turn support bot with escalation, memory, and CRM integration',
+        category: 'Support',
+        author: 'HaxonTeam',
+        stars: 342,
+        downloads: 4821,
+        tags: ['gpt-4o', 'memory', 'tools'],
+        featured: true
+    },
+    {
+        id: 'mkt-002',
+        name: 'RAG Document Chat',
+        description: 'Retrieval-augmented generation pipeline with PDF ingestion and citation tracking',
+        category: 'Research',
+        author: 'community',
+        stars: 289,
+        downloads: 3102,
+        tags: ['rag', 'vector-store', 'pdf'],
+        featured: true
+    },
+    {
+        id: 'mkt-003',
+        name: 'SQL Query Agent',
+        description: 'Natural language to SQL with schema awareness and query validation',
+        category: 'Data',
+        author: 'HaxonTeam',
+        stars: 198,
+        downloads: 2341,
+        tags: ['sql', 'tools', 'claude'],
+        featured: false
+    },
+    {
+        id: 'mkt-004',
+        name: 'Email Drip Campaign',
+        description: 'Personalized email sequence generator with A/B testing support',
+        category: 'Marketing',
+        author: 'community',
+        stars: 156,
+        downloads: 1890,
+        tags: ['email', 'personalization'],
+        featured: false
+    },
+    {
+        id: 'mkt-005',
+        name: 'Code Review Bot',
+        description: 'Automated PR reviewer with security scanning and performance suggestions',
+        category: 'DevTools',
+        author: 'community',
+        stars: 241,
+        downloads: 2890,
+        tags: ['code', 'github', 'security'],
+        featured: true
+    },
+    {
+        id: 'mkt-006',
+        name: 'Research Summarizer',
+        description: 'Fetches, reads, and synthesizes academic papers and web articles',
+        category: 'Research',
+        author: 'HaxonTeam',
+        stars: 134,
+        downloads: 1560,
+        tags: ['search', 'summarize', 'rag'],
+        featured: false
+    },
+    {
+        id: 'mkt-007',
+        name: 'Product Description Writer',
+        description: 'E-commerce focused copy generator with SEO optimization and brand voice',
+        category: 'Marketing',
+        author: 'community',
+        stars: 89,
+        downloads: 980,
+        tags: ['ecommerce', 'seo', 'copy'],
+        featured: false
+    },
+    {
+        id: 'mkt-008',
+        name: 'Data Extraction Pipeline',
+        description: 'Structured data extraction from unstructured text with JSON schema output',
+        category: 'Data',
+        author: 'HaxonTeam',
+        stars: 176,
+        downloads: 2100,
+        tags: ['extraction', 'json', 'structured'],
+        featured: false
+    },
+    {
+        id: 'mkt-009',
+        name: 'Interview Coach',
+        description: 'Role-specific interview preparation with feedback and scoring',
+        category: 'HR',
+        author: 'community',
+        stars: 112,
+        downloads: 1340,
+        tags: ['hr', 'coaching', 'evaluation'],
+        featured: false
+    },
+    {
+        id: 'mkt-010',
+        name: 'Legal Document Analyzer',
+        description: 'Contract review with risk flagging and clause summarization',
+        category: 'Legal',
+        author: 'HaxonTeam',
+        stars: 203,
+        downloads: 2450,
+        tags: ['legal', 'rag', 'analysis'],
+        featured: true
+    },
+    {
+        id: 'mkt-011',
+        name: 'Chatbot Tester',
+        description: 'Automated test suite generator for conversational AI flows',
+        category: 'DevTools',
+        author: 'community',
+        stars: 67,
+        downloads: 780,
+        tags: ['testing', 'evaluation'],
+        featured: false
+    },
+    {
+        id: 'mkt-012',
+        name: 'Meeting Notes Processor',
+        description: 'Transcription to structured notes with action items and follow-ups',
+        category: 'Productivity',
+        author: 'HaxonTeam',
+        stars: 145,
+        downloads: 1720,
+        tags: ['productivity', 'summarize', 'tools'],
+        featured: false
+    }
+]
+
+export default marketplaces

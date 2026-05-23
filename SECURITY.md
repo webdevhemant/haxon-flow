@@ -4,45 +4,45 @@ At Flowise, we prioritize security and continuously work to safeguard our system
 
 ### Scope
 
--   Flowise Cloud: cloud.flowiseai.com
--   Public Flowise Repositories
+- Flowise Cloud: cloud.flowiseai.com
+- Public Flowise Repositories
 
 ### Out of scope vulnerabilities
 
--   Hypothetical issues that do not have a demonstrable, practical impact
--   Vulnerabilities that affect out-of-date browsers
--   ClickjackingCSRF on unauthenticated/logout/login pages
--   Banner disclosure on common/public services
--   Disclosure of known public files or directories (e.g. robots.txt)
--   Attacks requiring MITM (Man-in-the-Middle) or physical device access
--   Social engineering attacks
--   Denial service via bruteforce attack
--   Content spoofing and text injection without a valid attack vector
--   Username enumeration via Login Page error message
--   Username enumeration via Forgot password error message
--   Bruteforce attacks
--   Email spoofing
--   Absence of DNSSEC, CAA, CSP headers
--   Missing Secure or HTTP-only flag on non-sensitive cookies
--   Deadlinks
--   User enumeration
--   Social Engineering
--   Version Disclosure
--   Vulnerabilities that can only affect the attacker (e.g. self-XSS)
--   Known vulnerabilities in used libraries (unless exploitability can be proven)
--   Static application security testing findings
+- Hypothetical issues that do not have a demonstrable, practical impact
+- Vulnerabilities that affect out-of-date browsers
+- ClickjackingCSRF on unauthenticated/logout/login pages
+- Banner disclosure on common/public services
+- Disclosure of known public files or directories (e.g. robots.txt)
+- Attacks requiring MITM (Man-in-the-Middle) or physical device access
+- Social engineering attacks
+- Denial service via bruteforce attack
+- Content spoofing and text injection without a valid attack vector
+- Username enumeration via Login Page error message
+- Username enumeration via Forgot password error message
+- Bruteforce attacks
+- Email spoofing
+- Absence of DNSSEC, CAA, CSP headers
+- Missing Secure or HTTP-only flag on non-sensitive cookies
+- Deadlinks
+- User enumeration
+- Social Engineering
+- Version Disclosure
+- Vulnerabilities that can only affect the attacker (e.g. self-XSS)
+- Known vulnerabilities in used libraries (unless exploitability can be proven)
+- Static application security testing findings
 
 ### Reporting Guidelines
 
--   Submit your findings to https://github.com/FlowiseAI/Flowise/security
--   Provide clear details to help us reproduce and fix the issue quickly.
+- Submit your findings to https://github.com/FlowiseAI/Flowise/security
+- Provide clear details to help us reproduce and fix the issue quickly.
 
 ### Reporting Guidelines
 
--   Submit your findings to https://github.com/FlowiseAI/Flowise/security
--   Ensure that the vulnerability is exploitable. Theoretical or static application security testing reports are subject to dismissal.
--   Submit the report with CVSS vector and calculated severity.
--   Provide a clear detailed report with proof of concept to help us reproduce and remediate the vulnerability.
+- Submit your findings to https://github.com/FlowiseAI/Flowise/security
+- Ensure that the vulnerability is exploitable. Theoretical or static application security testing reports are subject to dismissal.
+- Submit the report with CVSS vector and calculated severity.
+- Provide a clear detailed report with proof of concept to help us reproduce and remediate the vulnerability.
 
 ### Disclosure Terms
 
@@ -50,9 +50,9 @@ The Flowise team believes that transparency is important and public bug bounty r
 
 Do not discuss or disclose vulnerability information without prior written consent. If you plan on presenting your research, please share a draft with us at least 45 days in advance for review. Avoid including:
 
--   Data from any Flowise customer projects
--   Flowise user/customer information
--   Details about Flowise employees, contractors, or partners
+- Data from any Flowise customer projects
+- Flowise user/customer information
+- Details about Flowise employees, contractors, or partners
 
 ### Report Validation Times
 
