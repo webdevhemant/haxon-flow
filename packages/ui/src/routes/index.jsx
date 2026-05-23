@@ -1,11 +1,7 @@
 import { useRoutes } from 'react-router-dom'
-
 import MainRoutes from './MainRoutes'
-import CanvasRoutes from './CanvasRoutes'
-import ChatbotRoutes from './ChatbotRoutes'
-import ExecutionRoutes from './ExecutionRoutes'
-import config from '@/config'
+import LandingRoutes from './LandingRoutes'
 
-export default function ThemeRoutes() {
-    return useRoutes([MainRoutes, CanvasRoutes, ChatbotRoutes, ExecutionRoutes], config.basename)
+export default function Routes() {
+    return useRoutes([LandingRoutes, MainRoutes])
 }
