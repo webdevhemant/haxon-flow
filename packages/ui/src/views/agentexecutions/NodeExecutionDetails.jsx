@@ -33,7 +33,7 @@ import { MemoizedReactMarkdown } from '@/ui-component/markdown/MemoizedReactMark
 import { SafeHTML } from '@/ui-component/safe/SafeHTML'
 import { AGENTFLOW_ICONS, baseURL } from '@/store/constant'
 import { JSONViewer } from '@/ui-component/json/JsonViewer'
-import ReactJson from 'flowise-react-json-view'
+import ReactJson from 'react-json-view'
 import { CodeEditor } from '@/ui-component/editor/CodeEditor'
 import SourceDocDialog from '@/ui-component/dialog/SourceDocDialog'
 

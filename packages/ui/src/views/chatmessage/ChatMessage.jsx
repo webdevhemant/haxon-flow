@@ -617,7 +617,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
         })
     }
 
-    const updateErrorMessage = (errorMessage) => {
+    const update = (errorMessage) => {
         setMessages((prevMessages) => {
             let allMessages = [...cloneDeep(prevMessages)]
             allMessages.push({ message: errorMessage, type: 'apiMessage' })
@@ -1183,7 +1183,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                         updateMetadata(payload.data, input)
                         break
                     case 'error':
-                        updateErrorMessage(payload.data)
+                        update(payload.data)
                         break
                     case 'abort':
                         abortMessage(payload.data)

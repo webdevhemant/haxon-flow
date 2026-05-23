@@ -91,7 +91,7 @@ const Documents = () => {
         setSearch(event.target.value)
     }
 
-    const getDeleteErrorMessage = (error) => {
+    const getDelete = (error) => {
         const responseData = error?.response?.data
 
         if (typeof responseData === 'string' && responseData.trim()) {
@@ -235,7 +235,7 @@ const Documents = () => {
                 setTotal((prev) => Math.max(0, prev - 1))
             }
         } catch (error) {
-            const errorMessage = getDeleteErrorMessage(error)
+            const errorMessage = getDelete(error)
 
             enqueueSnackbar({
                 message: `Failed to delete Document Store: ${errorMessage}`,

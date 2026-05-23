@@ -26,7 +26,7 @@ const AllowedDomains = ({ dialogProps, onConfirm, hideTitle = false }) => {
     const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
 
     const [inputFields, setInputFields] = useState([''])
-    const [errorMessage, setErrorMessage] = useState('')
+    const [errorMessage, set] = useState('')
 
     const [chatbotConfig, setChatbotConfig] = useState({})
 
@@ -105,13 +105,13 @@ const AllowedDomains = ({ dialogProps, onConfirm, hideTitle = false }) => {
                     setInputFields([''])
                 }
                 if (chatbotConfig.allowedOriginsError) {
-                    setErrorMessage(chatbotConfig.allowedOriginsError)
+                    set(chatbotConfig.allowedOriginsError)
                 } else {
-                    setErrorMessage('')
+                    set('')
                 }
             } catch (e) {
                 setInputFields([''])
-                setErrorMessage('')
+                set('')
             }
         }
 
@@ -190,7 +190,7 @@ const AllowedDomains = ({ dialogProps, onConfirm, hideTitle = false }) => {
                         placeholder='Unauthorized domain!'
                         value={errorMessage}
                         onChange={(e) => {
-                            setErrorMessage(e.target.value)
+                            set(e.target.value)
                         }}
                     />
                 </Stack>

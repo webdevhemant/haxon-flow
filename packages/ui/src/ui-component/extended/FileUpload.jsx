@@ -32,7 +32,7 @@ import chatflowsApi from '@/api/chatflows'
 
 const message = `The full contents of uploaded files will be converted to text and sent to the Agent.
 <br />
-Refer <a href='https://docs.flowiseai.com/using-flowise/uploads#files' target='_blank' style='color: #2196f3'>docs</a> for more details.`
+Refer <a href='https://docs.haxon.ai/using-haxon-flow/uploads#files' target='_blank' style='color: #2196f3'>docs</a> for more details.`
 
 const availableFileTypes = [
     { name: 'CSS', ext: 'text/css', extension: '.css' },

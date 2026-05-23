@@ -52,7 +52,7 @@ import exportImportApi from '@/api/exportimport'
 
 // Hooks
 import useApi from '@/hooks/useApi'
-import { getErrorMessage } from '@/utils/errorHandler'
+import { get } from '@/utils/errorHandler'
 
 const dataToExport = [
     'Agentflows',
@@ -358,7 +358,7 @@ const ProfileSection = ({ handleLogout }) => {
                 linkElement.setAttribute('download', exportAllApi.data.FileDefaultName)
                 linkElement.click()
             } catch (error) {
-                errorFailed(`Failed to export all: ${getErrorMessage(error)}`)
+                errorFailed(`Failed to export all: ${get(error)}`)
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

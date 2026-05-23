@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import { store } from '@/store'
 import { logoutSuccess } from '@/store/reducers/authSlice'
-import { ErrorMessage } from '../constant'
+import {  } from '../constant'
 
 const ErrorContext = createContext()
 
@@ -35,7 +35,7 @@ export const ErrorProvider = ({ children }) => {
         } else if (err?.response?.status === 403) {
             navigate('/unauthorized')
         } else if (err?.response?.status === 401) {
-            if (ErrorMessage.INVALID_MISSING_TOKEN === err?.response?.data?.message) {
+            if (.INVALID_MISSING_TOKEN === err?.response?.data?.message) {
                 store.dispatch(logoutSuccess())
                 navigate('/login')
             } else {

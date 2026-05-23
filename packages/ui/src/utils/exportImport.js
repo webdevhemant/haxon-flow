@@ -1,4 +1,4 @@
-import { getErrorMessage } from './errorHandler'
+import { get } from './errorHandler'
 import { generateExportFlowData } from './genericHelper'
 
 const sanitizeTool = (Tool) => {
@@ -15,7 +15,7 @@ const sanitizeTool = (Tool) => {
             }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeTool ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeTool ${get(error)}`)
     }
 }
 
@@ -31,7 +31,7 @@ const sanitizeChatflow = (ChatFlow) => {
             }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeChatflow ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeChatflow ${get(error)}`)
     }
 }
 
@@ -46,7 +46,7 @@ const sanitizeVariable = (Variable) => {
             }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeVariable ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeVariable ${get(error)}`)
     }
 }
 
@@ -62,7 +62,7 @@ const sanitizeAssistant = (Assistant) => {
             }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeAssistant ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeAssistant ${get(error)}`)
     }
 }
 
@@ -72,7 +72,7 @@ const sanitizeCustomTemplate = (CustomTemplate) => {
             return { ...customTemplate, usecases: JSON.stringify(customTemplate.usecases), workspaceId: undefined }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeCustomTemplate ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeCustomTemplate ${get(error)}`)
     }
 }
 
@@ -82,7 +82,7 @@ const sanitizeDocumentStore = (DocumentStore) => {
             return { ...documentStore, workspaceId: undefined }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeDocumentStore ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeDocumentStore ${get(error)}`)
     }
 }
 
@@ -93,7 +93,7 @@ const sanitizeExecution = (Execution) => {
             return { ...execution, workspaceId: undefined }
         })
     } catch (error) {
-        throw new Error(`exportImport.sanitizeExecution ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.sanitizeExecution ${get(error)}`)
     }
 }
 
@@ -101,7 +101,7 @@ export const stringify = (object) => {
     try {
         return JSON.stringify(object, null, 2)
     } catch (error) {
-        throw new Error(`exportImport.stringify ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.stringify ${get(error)}`)
     }
 }
 
@@ -125,6 +125,6 @@ export const exportData = (exportAllData) => {
             Variable: sanitizeVariable(exportAllData.Variable)
         }
     } catch (error) {
-        throw new Error(`exportImport.exportData ${getErrorMessage(error)}`)
+        throw new Error(`exportImport.exportData ${get(error)}`)
     }
 }

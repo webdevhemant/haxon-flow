@@ -315,7 +315,7 @@ const WebhookListenerDrawer = ({ open, chatflowid, onClose, onStatusChange }) =>
     const [flowStatus, setFlowStatus] = useState(null)
     const [executionChatId, setExecutionChatId] = useState(null)
     const [finalMessage, setFinalMessage] = useState('')
-    const [errorMessage, setErrorMessage] = useState(null)
+    const [errorMessage, set] = useState(null)
     const [executedData, setExecutedData] = useState(null)
     const [startedAt, setStartedAt] = useState(null)
     const [finishedAt, setFinishedAt] = useState(null)
@@ -342,7 +342,7 @@ const WebhookListenerDrawer = ({ open, chatflowid, onClose, onStatusChange }) =>
     // ── Reset visible run state but keep the connection open and listening
     const resetRun = useCallback(() => {
         setFinalMessage('')
-        setErrorMessage(null)
+        set(null)
         setExecutedData(null)
         setFlowStatus(null)
         setExecutionChatId(null)
@@ -431,7 +431,7 @@ const WebhookListenerDrawer = ({ open, chatflowid, onClose, onStatusChange }) =>
                                 if (typeof payload.data === 'string') setFinalMessage((m) => m + payload.data)
                                 break
                             case 'error':
-                                setErrorMessage(typeof payload.data === 'string' ? payload.data : 'Execution error')
+                                set(typeof payload.data === 'string' ? payload.data : 'Execution error')
                                 setStatus('error')
                                 break
                             case 'executionEnd':
@@ -454,7 +454,7 @@ const WebhookListenerDrawer = ({ open, chatflowid, onClose, onStatusChange }) =>
                 })
             } catch (err) {
                 if (!ctrl.signal.aborted) {
-                    setErrorMessage(err?.message || 'Listener disconnected')
+                    set(err?.message || 'Listener disconnected')
                     setStatus('error')
                 }
             }
@@ -477,7 +477,7 @@ const WebhookListenerDrawer = ({ open, chatflowid, onClose, onStatusChange }) =>
                 openStream(id)
             } catch (err) {
                 if (cancelled) return
-                setErrorMessage(err?.response?.data?.message || err?.message || 'Failed to register listener')
+                set(err?.response?.data?.message || err?.message || 'Failed to register listener')
                 setStatus('error')
             }
         })()

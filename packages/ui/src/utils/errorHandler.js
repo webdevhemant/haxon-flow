@@ -14,6 +14,6 @@ const toErrorWithMessage = (maybeError) => {
     }
 }
 
-export const getErrorMessage = (error) => {
+export const get = (error) => {
     return toErrorWithMessage(error).message
 }

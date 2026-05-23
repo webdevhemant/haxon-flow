@@ -90,7 +90,7 @@ const WorkspaceSwitcher = () => {
     const [isSwitching, setIsSwitching] = useState(false)
     const [showWorkspaceUnavailableDialog, setShowWorkspaceUnavailableDialog] = useState(false)
     const [showErrorDialog, setShowErrorDialog] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
+    const [errorMessage, set] = useState('')
 
     const getWorkspacesByOrganizationIdUserIdApi = useApi(userApi.getWorkspacesByOrganizationIdUserId)
     const getWorkspacesByUserIdApi = useApi(userApi.getWorkspacesByUserId)
@@ -200,7 +200,7 @@ const WorkspaceSwitcher = () => {
             setShowWorkspaceUnavailableDialog(false)
 
             // Set error message and show error dialog
-            setErrorMessage(switchWorkspaceApi.error.message || 'Failed to switch workspace')
+            set(switchWorkspaceApi.error.message || 'Failed to switch workspace')
             setShowErrorDialog(true)
         }
     }, [switchWorkspaceApi.error])

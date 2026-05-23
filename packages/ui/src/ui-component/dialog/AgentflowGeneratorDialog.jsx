@@ -14,7 +14,7 @@ import { flowContext } from '@/store/context/ReactFlowContext'
 import { Dropdown } from '@/ui-component/dropdown/Dropdown'
 import { useTheme } from '@mui/material/styles'
 import assistantsApi from '@/api/assistants'
-import { baseURL, FLOWISE_CREDENTIAL_ID } from '@/store/constant'
+import { baseURL, HAXON_CREDENTIAL_ID } from '@/store/constant'
 import { initNode, showHideInputParams } from '@/utils/genericHelper'
 import DocStoreInputHandler from '@/views/docstore/DocStoreInputHandler'
 import useApi from '@/hooks/useApi'
@@ -60,7 +60,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
             const updatedData = { ...prevData }
             if (inputParam.type === 'credential') {
                 updatedData.credential = newValue
-                updatedData.inputs = { ...updatedData.inputs, [FLOWISE_CREDENTIAL_ID]: newValue }
+                updatedData.inputs = { ...updatedData.inputs, [HAXON_CREDENTIAL_ID]: newValue }
             } else {
                 updatedData.inputs = { ...updatedData.inputs, [inputParam.name]: newValue }
             }
@@ -107,7 +107,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
             if (!inputParam.optional) {
                 if (inputParam.type === 'credential') {
                     // Check for credential in both possible locations
-                    const credential = selectedChatModel.credential || selectedChatModel.inputs?.[FLOWISE_CREDENTIAL_ID]
+                    const credential = selectedChatModel.credential || selectedChatModel.inputs?.[HAXON_CREDENTIAL_ID]
                     if (!credential) {
                         missingFields.push(inputParam.label || 'Credential')
                     }

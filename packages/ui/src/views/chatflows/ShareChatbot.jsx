@@ -69,7 +69,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
     const [titleTextColor, setTitleTextColor] = useState(chatbotConfig?.titleTextColor ?? defaultConfig.titleTextColor)
 
     const [welcomeMessage, setWelcomeMessage] = useState(chatbotConfig?.welcomeMessage ?? '')
-    const [errorMessage, setErrorMessage] = useState(chatbotConfig?.errorMessage ?? '')
+    const [errorMessage, set] = useState(chatbotConfig?.errorMessage ?? '')
     const [backgroundColor, setBackgroundColor] = useState(chatbotConfig?.backgroundColor ?? defaultConfig.backgroundColor)
     const [fontSize, setFontSize] = useState(chatbotConfig?.fontSize ?? defaultConfig.fontSize)
     const [poweredByTextColor, setPoweredByTextColor] = useState(chatbotConfig?.poweredByTextColor ?? defaultConfig.poweredByTextColor)
@@ -312,7 +312,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                 setWelcomeMessage(value)
                 break
             case 'errorMessage':
-                setErrorMessage(value)
+                set(value)
                 break
             case 'fontSize':
                 setFontSize(value)
@@ -467,13 +467,13 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                 <Stack sx={{ mt: 1, mb: 2, alignItems: 'center' }} direction='row' spacing={2}>
                     <Typography variant='h4'>Title Settings</Typography>
                 </Stack>
-                {textField(title, 'title', 'Title', 'string', 'Flowise Assistant')}
+                {textField(title, 'title', 'Title', 'string', 'Haxon Flow Assistant')}
                 {textField(
                     titleAvatarSrc,
                     'titleAvatarSrc',
                     'Title Avatar Link',
                     'string',
-                    `https://raw.githubusercontent.com/FlowiseAI/Flowise/main/assets/FloWiseAI_dark.png`
+                    `https://raw.githubusercontent.com/Haxon/Haxon Flow/main/assets/FloWiseAI_dark.png`
                 )}
                 {colorField(titleBackgroundColor, 'titleBackgroundColor', 'Title Background Color')}
                 {colorField(titleTextColor, 'titleTextColor', 'Title TextColor')}
