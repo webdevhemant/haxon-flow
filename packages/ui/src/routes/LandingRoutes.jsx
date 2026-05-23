@@ -1,11 +1,14 @@
-import { lazy } from 'react'
-import Loadable from '@/ui-component/loading/Loadable'
+import { lazy, Suspense } from 'react'
 
-const Landing = Loadable(lazy(() => import('@/pages/landing')))
+const Landing = lazy(() => import('@/pages/landing'))
 
 const LandingRoutes = {
-    path: '/home',
-    element: <Landing />,
+    path: '/',
+    element: (
+        <Suspense fallback={null}>
+            <Landing />
+        </Suspense>
+    ),
 }
 
 export default LandingRoutes
