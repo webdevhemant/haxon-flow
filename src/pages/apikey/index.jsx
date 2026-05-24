@@ -93,7 +93,7 @@ export default function APIKey() {
     const [items, setItems] = useState(apikeysData)
     const [showCreate, setShowCreate] = useState(false)
 
-    const filtered = items.filter((k) => k.keyName.toLowerCase().includes(search.toLowerCase()))
+    const filtered = items.filter((k) => (k.keyName || k.name || '').toLowerCase().includes(search.toLowerCase()))
 
     const handleCopy = (val) => { navigator.clipboard.writeText(val).catch(() => {}); toast.success('Key copied to clipboard') }
 
@@ -155,7 +155,7 @@ export default function APIKey() {
                                             <IconKey size={14} className='text-primary' />
                                         </div>
                                         <div>
-                                            <div className='font-medium text-sm text-foreground'>{key.keyName}</div>
+                                            <div className='font-medium text-sm text-foreground'>{key.keyName || key.name}</div>
                                             {key.description && <div className='text-xs text-muted-foreground hidden sm:block'>{key.description}</div>}
                                         </div>
                                     </div>

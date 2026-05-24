@@ -135,7 +135,7 @@ export default function AgentExecutions() {
                                         {ex.tokens.toLocaleString()}
                                     </td>
                                     <td className='px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell'>
-                                        {formatRelativeTime(ex.time)}
+                                        {formatRelativeTime(ex.startTime)}
                                     </td>
                                 </tr>
                             )
