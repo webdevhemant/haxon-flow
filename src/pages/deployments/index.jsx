@@ -7,18 +7,13 @@ import { cn, formatRelativeTime } from '@/lib/utils'
 import { useFlowStore } from '@/store/useFlowStore'
 import { toast } from 'sonner'
 import {
-    IconPlus,
-    IconSearch,
-    IconApi,
-    IconBolt,
-    IconExternalLink,
-    IconCopy,
-    IconChartBar,
-    IconShield,
-    IconTrash,
-    IconPlayerPause,
-    IconPlayerPlay
+    IconPlus, IconSearch, IconApi, IconBolt, IconExternalLink,
+    IconCopy, IconChartBar, IconShield, IconTrash, IconPlayerPause, IconPlayerPlay
 } from '@tabler/icons-react'
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 
 const REGIONS = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1', 'ap-northeast-1']
 
@@ -198,6 +193,9 @@ const STATUS_CONFIG = {
 
 export default function Deployments() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [deps, setDeps] = useState(MOCK_DEPLOYMENTS)
     const [showDeploy, setShowDeploy] = useState(false)
 
@@ -225,10 +223,32 @@ export default function Deployments() {
         toast.success('Removed')
     }
 
+
+    if (loading) return (
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='rounded-xl border border-border overflow-hidden'>
+                <table className='w-full'>
+                    <tbody>{Array.from({ length: 8 }, (_, i) => <SkeletonRow key={i} />)}</tbody>
+                </table>
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <DeployDialog open={showDeploy} onClose={() => setShowDeploy(false)} onDeploy={handleDeploy} />
 
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete deployment?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
@@ -325,7 +345,7 @@ export default function Deployments() {
                                         variant='ghost'
                                         size='icon-sm'
                                         className='text-destructive hover:text-destructive'
-                                        onClick={() => handleDelete(dep.id)}
+                                        onClick={() => { setConfirmDelete(dep.id); play('click') }}
                                     >
                                         <IconTrash size={13} />
                                     </Button>

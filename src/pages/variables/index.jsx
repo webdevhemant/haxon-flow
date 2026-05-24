@@ -10,6 +10,10 @@ import variablesData from '@/mock/data/variables'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconDots, IconEdit, IconTrash, IconVariable, IconEye, IconEyeOff } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const TYPE_COLORS = { string: '#6366F1', number: '#10B981', boolean: '#F59E0B', secret: '#EF4444', json: '#A855F7' }
 const TYPES = ['string', 'number', 'boolean', 'secret', 'json']
 
@@ -100,6 +104,9 @@ function VariableDialog({ open, onClose, onSave, initial }) {
 
 export default function Variables() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(variablesData)
     const [revealed, setRevealed] = useState(new Set())
     const [showAdd, setShowAdd] = useState(false)
@@ -132,10 +139,30 @@ export default function Variables() {
         toast.success('Variable deleted')
     }
 
+
+    if (loading) return (
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='space-y-2'>
+                {Array.from({ length: 8 }, (_, i) => <SkeletonListItem key={i} />)}
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <VariableDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <VariableDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete variable?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />            <VariableDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
@@ -225,7 +252,7 @@ export default function Variables() {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     className='text-destructive focus:text-destructive'
-                                                    onClick={() => handleDelete(v.id)}
+                                                    onClick={() => { setConfirmDelete(v.id); play('click') }}
                                                 >
                                                     <IconTrash size={13} /> Delete
                                                 </DropdownMenuItem>

@@ -10,6 +10,10 @@ import { evaluators } from '@/mock/data/datasets'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconDots, IconEdit, IconTrash, IconFlask, IconCpu, IconCode, IconBrain } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const TYPE_ICONS = { 'llm-judge': IconBrain, heuristic: IconCode, 'code-runner': IconFlask }
 const CATEGORY_COLORS = { RAG: '#6366F1', Safety: '#EF4444', Correctness: '#10B981', Quality: '#F59E0B', Code: '#22D3EE' }
 const TYPES = ['llm-judge', 'heuristic', 'code-runner']
@@ -173,6 +177,9 @@ function EvaluatorDialog({ open, onClose, onSave, initial }) {
 
 export default function Evaluators() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(evaluators)
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -196,10 +203,30 @@ export default function Evaluators() {
         toast.success('Deleted')
     }
 
+
+    if (loading) return (
+        <div className='space-y-5'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)}
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <EvaluatorDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <EvaluatorDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete evaluator?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />            <EvaluatorDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
@@ -247,7 +274,7 @@ export default function Evaluators() {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className='text-destructive focus:text-destructive'
-                                                onClick={() => handleDelete(ev.id)}
+                                                onClick={() => { setConfirmDelete(ev.id); play('click') }}
                                             >
                                                 <IconTrash size={13} /> Delete
                                             </DropdownMenuItem>

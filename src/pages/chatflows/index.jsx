@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { SkeletonCard, SkeletonStatCard } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn, formatRelativeTime } from '@/lib/utils'
@@ -145,10 +148,12 @@ function FilterPanel({ filters, setFilters, onClose }) {
 export default function Chatflows() {
     const navigate = useNavigate()
     const { play } = useSound()
+    const loading = usePageLoading()
     const [search, setSearch] = useState('')
     const [view, setView] = useState('grid')
     const [showCreate, setShowCreate] = useState(false)
     const [showFilter, setShowFilter] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [filters, setFilters] = useState({ status: 'all', date: 'all', size: 'all' })
     const filterRef = useRef(null)
     const { chatflows, addChatflow, deleteChatflow, updateChatflow } = useFlowStore()
@@ -184,15 +189,50 @@ export default function Chatflows() {
         toast.success('Flow deleted')
     }
 
+    const handleExport = (flow) => {
+        const blob = new Blob([JSON.stringify(flow, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${flow.name.replace(/\s+/g, '-').toLowerCase()}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+        play('click')
+        toast.success('Flow exported')
+    }
+
     const handleDuplicate = (flow) => {
         addChatflow({ ...flow, name: flow.name + ' (Copy)', deployed: false })
         play('click')
         toast.success('Flow duplicated')
     }
 
+    if (loading) return (
+        <div className='space-y-6'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+                {Array.from({ length: 4 }, (_, i) => <SkeletonStatCard key={i} />)}
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                {Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)}
+            </div>
+        </div>
+    )
+
     return (
         <div className='space-y-6 animate-fade-in'>
             <CreateFlowDialog open={showCreate} onClose={() => setShowCreate(false)} onSave={handleCreate} />
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete flow?'
+                description='This will permanently remove the flow and all its data. This cannot be undone.'
+                confirmLabel='Delete flow'
+            />
 
             {/* Header row */}
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
@@ -310,15 +350,15 @@ export default function Chatflows() {
                                             >
                                                 <IconBolt size={13} /> {flow.deployed ? 'Unpublish' : 'Deploy'}
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleExport(flow)}>
                                                 <IconDownload size={13} /> Export JSON
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => { play('click'); toast.info('Share link copied!') }}>
                                                 <IconShare size={13} /> Share
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className='text-destructive focus:text-destructive'
-                                                onClick={() => handleDelete(flow.id)}
+                                                onClick={() => { setConfirmDelete(flow.id); play('click') }}
                                             >
                                                 <IconTrash size={13} /> Delete
                                             </DropdownMenuItem>

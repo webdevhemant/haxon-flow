@@ -10,19 +10,13 @@ import { cn } from '@/lib/utils'
 import { useFlowStore } from '@/store/useFlowStore'
 import { toast } from 'sonner'
 import {
-    IconPlus,
-    IconSearch,
-    IconDots,
-    IconRobot,
-    IconPlayerPlay,
-    IconEdit,
-    IconCopy,
-    IconTrash,
-    IconBolt,
-    IconCpu,
-    IconBrain,
-    IconUsersGroup
+    IconPlus, IconSearch, IconDots, IconRobot, IconPlayerPlay,
+    IconEdit, IconCopy, IconTrash, IconBolt, IconCpu, IconBrain, IconUsersGroup
 } from '@tabler/icons-react'
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 
 const CATEGORY_COLORS = {
     Research: '#A855F7',
@@ -105,6 +99,9 @@ function CreateAgentDialog({ open, onClose, onSave }) {
 
 export default function Agentflows() {
     const navigate = useNavigate()
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [search, setSearch] = useState('')
     const [showCreate, setShowCreate] = useState(false)
     const { agentflows, addAgentflow, deleteAgentflow, updateAgentflow } = useFlowStore()
@@ -128,10 +125,30 @@ export default function Agentflows() {
         toast.success('Duplicated')
     }
 
+
+    if (loading) return (
+        <div className='space-y-5'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)}
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <CreateAgentDialog open={showCreate} onClose={() => setShowCreate(false)} onSave={handleCreate} />
 
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete agentflow?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
@@ -225,7 +242,7 @@ export default function Agentflows() {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className='text-destructive focus:text-destructive'
-                                                onClick={() => handleDelete(flow.id)}
+                                                onClick={() => { setConfirmDelete(flow.id); play('click') }}
                                             >
                                                 <IconTrash size={13} /> Delete
                                             </DropdownMenuItem>

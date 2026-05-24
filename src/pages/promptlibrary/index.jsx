@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { SkeletonCard } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -7,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { IconPlus, IconSearch, IconCopy, IconBookmark, IconBolt, IconSparkles, IconDots, IconEdit, IconTrash } from '@tabler/icons-react'
+import { IconPlus, IconSearch, IconCopy, IconBookmark, IconBolt, IconSparkles, IconDots, IconEdit, IconTrash, IconCheck } from '@tabler/icons-react'
 
 const INITIAL_PROMPTS = [
     {
@@ -244,13 +246,74 @@ function PromptDialog({ open, onClose, onSave, initial }) {
     )
 }
 
+function UsePromptDialog({ prompt, onClose }) {
+    const [values, setValues] = useState(() => Object.fromEntries((prompt?.variables || []).map((v) => [v, ''])))
+    const [copied, setCopied] = useState(false)
+
+    const filled = prompt
+        ? prompt.template.replace(/\{\{(\w+)\}\}/g, (_, k) => values[k] || `{{${k}}}`)
+        : ''
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(filled).catch(() => {})
+        setCopied(true)
+        toast.success('Filled prompt copied!')
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+        <Dialog open={!!prompt} onOpenChange={onClose}>
+            <DialogContent className='sm:max-w-2xl'>
+                <DialogHeader>
+                    <DialogTitle className='font-display'>Use: {prompt?.name}</DialogTitle>
+                </DialogHeader>
+                <div className='grid grid-cols-2 gap-4 py-2'>
+                    <div className='space-y-3'>
+                        <p className='text-xs text-muted-foreground'>Fill in the variables below to build your final prompt.</p>
+                        {(prompt?.variables || []).length === 0 ? (
+                            <p className='text-xs text-muted-foreground italic'>No variables in this template.</p>
+                        ) : (
+                            prompt.variables.map((v) => (
+                                <div key={v} className='space-y-1.5'>
+                                    <label className='text-xs font-medium text-foreground font-mono'>{'{{' + v + '}}'}</label>
+                                    <textarea
+                                        rows={3}
+                                        value={values[v]}
+                                        onChange={(e) => setValues((p) => ({ ...p, [v]: e.target.value }))}
+                                        placeholder={`Enter ${v}…`}
+                                        className='w-full text-xs rounded-md border border-border bg-secondary/40 px-3 py-2 text-foreground resize-none font-mono leading-relaxed'
+                                    />
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    <div className='space-y-1.5'>
+                        <label className='text-xs font-medium text-muted-foreground'>Preview</label>
+                        <div className='h-full min-h-[200px] rounded-md border border-border bg-secondary/20 px-3 py-2 text-xs font-mono text-foreground leading-relaxed whitespace-pre-wrap overflow-auto'>
+                            {filled}
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant='outline' onClick={onClose}>Cancel</Button>
+                    <Button variant='gradient' onClick={handleCopy} className='gap-2'>
+                        {copied ? <><IconCheck size={13} /> Copied!</> : <><IconCopy size={13} /> Copy filled prompt</>}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function PromptLibrary() {
+    const loading = usePageLoading()
     const [search, setSearch] = useState('')
     const [category, setCategory] = useState('All')
     const [items, setItems] = useState(INITIAL_PROMPTS)
     const [bookmarks, setBookmarks] = useState(() => new Set(INITIAL_PROMPTS.filter((p) => p.bookmarked).map((p) => p.id)))
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
+    const [using, setUsing] = useState(null)
 
     const filtered = items.filter((p) => {
         const matchSearch =
@@ -287,10 +350,26 @@ export default function PromptLibrary() {
         toast.success('Deleted')
     }
 
+    if (loading) return (
+        <div className='space-y-5'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-28 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='flex gap-2'>
+                {Array.from({ length: 6 }, (_, i) => <div key={i} className='h-7 w-20 bg-secondary/70 animate-pulse rounded-full' />)}
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)}
+            </div>
+        </div>
+    )
+
     return (
         <div className='space-y-6 animate-fade-in'>
             <PromptDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <PromptDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+            <PromptDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+            <UsePromptDialog prompt={using} onClose={() => setUsing(null)} />
 
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='relative flex-1 max-w-xs'>
@@ -412,8 +491,7 @@ export default function PromptLibrary() {
                                                 setItems((p) =>
                                                     p.map((x) => (x.id === prompt.id ? { ...x, usageCount: x.usageCount + 1 } : x))
                                                 )
-                                                toast.success('Added to clipboard!')
-                                                handleCopy(prompt.template)
+                                                setUsing(prompt)
                                             }}
                                         >
                                             <IconSparkles size={11} /> Use

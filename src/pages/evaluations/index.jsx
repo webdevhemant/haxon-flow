@@ -8,6 +8,10 @@ import { evaluations, evaluators, datasets } from '@/mock/data/datasets'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconCheck, IconX, IconClock, IconFlask, IconTrash } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const STATUS_CONFIG = {
     passed: { variant: 'success', icon: IconCheck },
     failed: { variant: 'destructive', icon: IconX },
@@ -128,6 +132,9 @@ function RunEvaluationDialog({ open, onClose, onRun }) {
 
 export default function Evaluations() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(evaluations)
     const [showRun, setShowRun] = useState(false)
 
@@ -157,10 +164,32 @@ export default function Evaluations() {
         toast.success('Deleted')
     }
 
+
+    if (loading) return (
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='rounded-xl border border-border overflow-hidden'>
+                <table className='w-full'>
+                    <tbody>{Array.from({ length: 8 }, (_, i) => <SkeletonRow key={i} />)}</tbody>
+                </table>
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <RunEvaluationDialog open={showRun} onClose={() => setShowRun(false)} onRun={handleRun} />
 
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete evaluation?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
@@ -239,7 +268,7 @@ export default function Evaluations() {
                                         variant='ghost'
                                         size='icon-sm'
                                         className='opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive'
-                                        onClick={() => handleDelete(ev.id)}
+                                        onClick={() => { setConfirmDelete(ev.id); play('click') }}
                                     >
                                         <IconTrash size={13} />
                                     </Button>

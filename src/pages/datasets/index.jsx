@@ -10,6 +10,10 @@ import { datasets } from '@/mock/data/datasets'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconDots, IconEdit, IconTrash, IconDatabase, IconUpload, IconDownload, IconX } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const STATUS_VARIANT = { ready: 'success', processing: 'warning', draft: 'secondary', error: 'destructive' }
 
 function DatasetDialog({ open, onClose, onSave, initial }) {
@@ -159,6 +163,9 @@ function UploadDialog({ open, onClose, onUpload }) {
 
 export default function Datasets() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(datasets)
     const [showAdd, setShowAdd] = useState(false)
     const [showUpload, setShowUpload] = useState(false)
@@ -201,10 +208,32 @@ export default function Datasets() {
         toast.success(`Exporting ${d.name}...`)
     }
 
+
+    if (loading) return (
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='rounded-xl border border-border overflow-hidden'>
+                <table className='w-full'>
+                    <tbody>{Array.from({ length: 8 }, (_, i) => <SkeletonRow key={i} />)}</tbody>
+                </table>
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <DatasetDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <DatasetDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete dataset?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />            <DatasetDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
             <UploadDialog open={showUpload} onClose={() => setShowUpload(false)} onUpload={handleUpload} />
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
@@ -292,7 +321,7 @@ export default function Datasets() {
                                             <DropdownMenuItem onClick={() => handleExport(d)}>
                                                 <IconDownload size={13} /> Export
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className='text-destructive' onClick={() => handleDelete(d.id)}>
+                                            <DropdownMenuItem className='text-destructive' onClick={() => { setConfirmDelete(d.id); play('click') }}>
                                                 <IconTrash size={13} /> Delete
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>

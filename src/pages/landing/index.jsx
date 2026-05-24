@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -168,15 +168,15 @@ function FeatureCard({ title, desc, icon: Icon, color, accent, className }) {
 function StepCard({ num, title, desc, icon: Icon, color, delay }) {
     return (
         <div className='animate-slide-up flex flex-col' style={{ animationDelay: `${delay + 0.1}s` }}>
-            {/* Step badge — circle ring with number, clearly visible */}
-            <div className='mb-6 h-11 w-11 rounded-full flex items-center justify-center font-mono font-bold text-sm shrink-0'
-                style={{ border: `2px solid ${color}`, color, background: `${color}12` }}>
-                {num}
+            <div className='mb-6 relative'>
+                <div className='h-12 w-12 rounded-full flex items-center justify-center shrink-0'
+                    style={{ border: `2px solid ${color}`, background: `${color}18` }}>
+                    <Icon size={20} style={{ color }} strokeWidth={1.8} />
+                </div>
+                <span className='absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-mono font-bold'
+                    style={{ background: color, color: '#fff' }}>{num}</span>
             </div>
-            <div className='flex items-center gap-2 mb-2'>
-                <Icon size={14} style={{ color }} />
-                <span className='font-display font-bold text-sm text-foreground'>{title}</span>
-            </div>
+            <span className='font-display font-bold text-base text-foreground mb-2'>{title}</span>
             <p className='text-sm text-muted-foreground leading-relaxed'>{desc}</p>
         </div>
     )
@@ -208,9 +208,17 @@ const TESTIMONIALS = [
 export default function Landing() {
     useReveal()
     const { play } = useSound()
+    const navigate = useNavigate()
     const [mobileMenu, setMobileMenu] = useState(false)
 
     const click = useCallback(() => play('click'), [play])
+
+    const NAV_LINKS = [
+        { label: 'Features', action: () => { click(); document.querySelector('#features')?.scrollIntoView({ behavior: 'smooth' }) } },
+        { label: 'Templates', action: () => { click(); navigate('/marketplaces') } },
+        { label: 'Docs', action: () => { click(); document.querySelector('#how-it-works')?.scrollIntoView({ behavior: 'smooth' }) } },
+        { label: 'Pricing', action: () => { click(); navigate('/pricing') } }
+    ]
 
     return (
         <div className='min-h-screen bg-background text-foreground overflow-x-hidden' style={{ fontFamily: "'Manrope', sans-serif" }}>
@@ -219,12 +227,12 @@ export default function Landing() {
             <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 sm:px-10 h-16 border-b border-border/25 bg-background/85 backdrop-blur-2xl'>
                 <Logo />
                 <div className='hidden md:flex items-center gap-7 text-sm text-muted-foreground'>
-                    {['Features', 'Templates', 'Docs', 'Pricing'].map((item) => (
-                        <a key={item} href='#' onClick={click}
+                    {NAV_LINKS.map(({ label, action }) => (
+                        <button key={label} onClick={action}
                             className='hover:text-foreground transition-colors duration-150 relative group'>
-                            {item}
+                            {label}
                             <span className='absolute -bottom-0.5 left-0 w-0 h-px bg-primary transition-[width] duration-200 group-hover:w-full' />
-                        </a>
+                        </button>
                     ))}
                 </div>
                 <div className='flex items-center gap-2'>
@@ -243,11 +251,11 @@ export default function Landing() {
             {/* Mobile menu */}
             {mobileMenu && (
                 <div className='fixed inset-0 z-40 bg-background/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-8 text-lg'>
-                    {['Features', 'Templates', 'Docs', 'Pricing'].map((item) => (
-                        <a key={item} href='#' onClick={() => { click(); setMobileMenu(false) }}
+                    {NAV_LINKS.map(({ label, action }) => (
+                        <button key={label} onClick={() => { action(); setMobileMenu(false) }}
                             className='text-muted-foreground hover:text-foreground transition-colors font-display font-semibold'>
-                            {item}
-                        </a>
+                            {label}
+                        </button>
                     ))}
                     <div className='flex flex-col gap-3 mt-4'>
                         <Button variant='outline' size='lg' asChild onClick={click}>
@@ -268,14 +276,6 @@ export default function Landing() {
 
                 {/* Left: text */}
                 <div className='relative z-10 flex-1 max-w-2xl'>
-                    <div className='animate-slide-up mb-6'>
-                        <Badge variant='outline' className='gap-2 px-4 py-1.5 text-xs font-mono border-primary/30 bg-primary/8 text-primary'>
-                            <span className='h-1.5 w-1.5 rounded-full bg-primary animate-pulse' />
-                            Open Beta — v1.0
-                            <IconArrowUpRight size={11} />
-                        </Badge>
-                    </div>
-
                     <h1 className='animate-slide-up stagger-1 leading-[0.9] tracking-tight mb-6'
                         style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(2.8rem, 6vw, 5.5rem)' }}>
                         <span className='text-foreground'>Ship AI</span>
@@ -392,7 +392,7 @@ export default function Landing() {
             </section>
 
             {/* ── Features ── */}
-            <section className='py-20 px-5 sm:px-10'>
+            <section id='features' className='py-20 px-5 sm:px-10'>
                 <div className='max-w-6xl mx-auto'>
                     <div className='mb-14 reveal-hidden'>
                         <Badge variant='outline' className='mb-4 text-xs font-mono border-primary/25 bg-primary/5 text-primary'>Platform</Badge>
@@ -411,7 +411,7 @@ export default function Landing() {
             </section>
 
             {/* ── How it works ── */}
-            <section className='py-24 px-5 sm:px-10 relative overflow-hidden'>
+            <section id='how-it-works' className='py-24 px-5 sm:px-10 relative overflow-hidden'>
                 <div className='absolute inset-0 bg-grid opacity-[0.06] pointer-events-none' />
                 <div className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent' />
                 <div className='absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent' />
@@ -424,9 +424,7 @@ export default function Landing() {
                             <span className='gradient-text-purple'>in a single session.</span>
                         </h2>
                     </div>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative'>
-                        <div className='hidden md:block absolute top-[22px] left-[36%] right-[36%] h-px bg-gradient-to-r from-primary/40 to-purple/40' />
-                        <div className='hidden md:block absolute top-[22px] left-[69%] right-[4%] h-px bg-gradient-to-r from-purple/40 to-neon/40' />
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8'>
                         {STEPS.map((s) => <StepCard key={s.n} {...s} />)}
                     </div>
                 </div>
@@ -508,7 +506,7 @@ export default function Landing() {
             </section>
 
             {/* ── CTA ── */}
-            <section className='py-24 px-5 sm:px-10 relative overflow-hidden'>
+            <section id='pricing' className='py-24 px-5 sm:px-10 relative overflow-hidden'>
                 <div className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
                 <div className='absolute inset-0 bg-grid opacity-[0.06] pointer-events-none' />
                 <div className='absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[300px] bg-primary/8 blur-[120px] pointer-events-none' />
@@ -557,10 +555,6 @@ export default function Landing() {
                             ))}
                         </div>
                     </div>
-                </div>
-                <div className='max-w-5xl mx-auto mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-muted-foreground'>
-                    <span>© 2026 Haxon Labs. Not affiliated with FlowiseAI.</span>
-                    <span>MIT License · Built for learning</span>
                 </div>
             </footer>
         </div>

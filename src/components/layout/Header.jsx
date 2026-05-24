@@ -197,11 +197,11 @@ export function Header() {
                         </div>
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='end' className='w-52'>
-                    <DropdownMenuLabel className='font-normal'>
+                <DropdownMenuContent align='end' className='w-64'>
+                    <DropdownMenuLabel className='font-normal normal-case tracking-normal'>
                         <div className='flex flex-col space-y-1'>
-                            <p className='text-sm font-semibold leading-none'>Hemant</p>
-                            <p className='text-xs text-muted-foreground'>hemant.dev.upwork@gmail.com</p>
+                            <p className='text-sm font-semibold leading-none normal-case'>Hemant</p>
+                            <p className='text-xs text-muted-foreground truncate normal-case'>hemant.dev.upwork@gmail.com</p>
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

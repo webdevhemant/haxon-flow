@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -89,11 +90,16 @@ export default function Account() {
     const { soundEnabled, setSoundEnabled, canvasMusicEnabled, setCanvasMusicEnabled, colorTheme, setColorTheme, fontSize, setFontSize, soundPack, setSoundPack, compactMode, setCompactMode, reducedMotion, setReducedMotion } = useUIStore()
     const { play } = useSound()
 
+    const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState('profile')
     const [profile, setProfile] = useState({ name: 'Hemant', email: 'hemant.dev.upwork@gmail.com', company: 'Haxon Labs', role: 'Owner' })
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(profile)
     const [showPw, setShowPw] = useState(false)
+    const [currentPw, setCurrentPw] = useState('')
+    const [newPw, setNewPw] = useState('')
+    const [confirmPw, setConfirmPw] = useState('')
+    const [twoFAExpanded, setTwoFAExpanded] = useState(false)
     const [notifications, setNotifications] = useState({
         failures: true, evaluations: true, rateLimit: false, weeklyReport: true, newModels: false, security: true
     })
@@ -113,6 +119,21 @@ export default function Account() {
         toast.success('Profile updated')
     }
 
+    const handleSignOut = () => {
+        play('click')
+        toast.success('Signed out successfully')
+        setTimeout(() => navigate('/auth/login'), 800)
+    }
+
+    const handleUpdatePassword = () => {
+        if (!currentPw) { toast.error('Enter your current password'); return }
+        if (newPw.length < 8) { toast.error('New password must be at least 8 characters'); return }
+        if (newPw !== confirmPw) { toast.error('Passwords do not match'); return }
+        play('success')
+        toast.success('Password updated successfully')
+        setCurrentPw(''); setNewPw(''); setConfirmPw('')
+    }
+
     return (
         <div className='max-w-4xl animate-fade-in'>
             {/* Header */}
@@ -128,7 +149,7 @@ export default function Account() {
                     </div>
                 </div>
                 <Button variant='outline' size='sm' className='ml-auto gap-2 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive'
-                    onClick={() => { play('click'); toast.info('Sign out coming soon') }}>
+                    onClick={handleSignOut}>
                     <IconLogout size={13} /> Sign Out
                 </Button>
             </div>
@@ -285,9 +306,9 @@ export default function Account() {
                             ))}
                         </div>
                         <div className='flex gap-2 pt-4 border-t border-border'>
-                            <Button variant='outline' size='sm' onClick={() => { play('click'); toast.info('Coming soon') }}>Manage Billing</Button>
+                            <Button variant='outline' size='sm' onClick={() => { play('click'); window.open('https://billing.stripe.com', '_blank') }}>Manage Billing</Button>
                             <Button variant='ghost' size='sm' className='text-destructive hover:text-destructive'
-                                onClick={() => { play('click'); toast.info('Contact support to cancel') }}>Cancel Plan</Button>
+                                onClick={() => { play('error'); toast.error('To cancel, email support@haxon.ai') }}>Cancel Plan</Button>
                         </div>
                     </SectionCard>
                     <SectionCard title='Usage This Month' icon={IconChartBar} iconColor='text-primary'>
@@ -355,14 +376,19 @@ export default function Account() {
                     <SectionCard title='Password' icon={IconKey} iconColor='text-primary'>
                         <div className='space-y-3'>
                             <div className='relative'>
-                                <Input type={showPw ? 'text' : 'password'} placeholder='Current password' className='h-9 text-sm pr-10' />
+                                <Input type={showPw ? 'text' : 'password'} placeholder='Current password' value={currentPw}
+                                    onChange={(e) => setCurrentPw(e.target.value)} className='h-9 text-sm pr-10' />
                                 <button onClick={() => setShowPw(!showPw)} className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'>
                                     {showPw ? <IconEyeOff size={14} /> : <IconEye size={14} />}
                                 </button>
                             </div>
-                            <Input type='password' placeholder='New password' className='h-9 text-sm' />
-                            <Input type='password' placeholder='Confirm new password' className='h-9 text-sm' />
-                            <Button variant='gradient' size='sm' onClick={() => { play('click'); toast.info('Coming soon') }}>Update Password</Button>
+                            <Input type='password' placeholder='New password (min 8 chars)' value={newPw}
+                                onChange={(e) => setNewPw(e.target.value)} className='h-9 text-sm' />
+                            <Input type='password' placeholder='Confirm new password' value={confirmPw}
+                                onChange={(e) => setConfirmPw(e.target.value)} className='h-9 text-sm' />
+                            <Button variant='gradient' size='sm' onClick={handleUpdatePassword} className='gap-2'>
+                                <IconDeviceFloppy size={13} /> Update Password
+                            </Button>
                         </div>
                     </SectionCard>
                     <SectionCard title='Two-Factor Authentication' icon={IconShield} iconColor='text-success'>
@@ -371,11 +397,40 @@ export default function Account() {
                                 <div className='text-sm font-medium text-foreground'>Authenticator App</div>
                                 <div className='text-xs text-muted-foreground mt-0.5'>Secure your account with TOTP 2FA</div>
                             </div>
-                            <Button variant='outline' size='sm' onClick={() => { play('click'); toast.info('Coming soon') }}
+                            <Button variant='outline' size='sm' onClick={() => { play('click'); setTwoFAExpanded(!twoFAExpanded) }}
                                 className='gap-2 border-success/20 text-success hover:bg-success/10 hover:text-success'>
-                                Enable 2FA <IconChevronRight size={12} />
+                                {twoFAExpanded ? 'Cancel' : 'Enable 2FA'} <IconChevronRight size={12} className={cn('transition-transform', twoFAExpanded && 'rotate-90')} />
                             </Button>
                         </div>
+                        {twoFAExpanded && (
+                            <div className='mt-4 pt-4 border-t border-border/50'>
+                                <p className='text-xs text-muted-foreground mb-4'>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                                <div className='flex gap-6 items-start'>
+                                    <div className='h-32 w-32 rounded-xl border-2 border-border bg-white flex items-center justify-center shrink-0'>
+                                        <div className='grid grid-cols-7 gap-0.5 p-2'>
+                                            {Array.from({ length: 49 }, (_, i) => (
+                                                <div key={i} className={cn('h-3 w-3 rounded-sm', Math.random() > 0.5 ? 'bg-gray-900' : 'bg-white')} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className='flex-1 space-y-3'>
+                                        <div>
+                                            <p className='text-xs font-medium text-foreground mb-1'>Manual entry key</p>
+                                            <div className='font-mono text-xs bg-secondary/50 rounded-lg px-3 py-2 text-muted-foreground tracking-widest'>JBSW Y3DP EHPK 3PXP</div>
+                                        </div>
+                                        <div>
+                                            <p className='text-xs font-medium text-foreground mb-1'>Verification code</p>
+                                            <div className='flex gap-2'>
+                                                <Input placeholder='Enter 6-digit code' className='h-8 text-sm font-mono' maxLength={6} />
+                                                <Button variant='gradient' size='sm' onClick={() => { play('success'); toast.success('2FA enabled successfully'); setTwoFAExpanded(false) }}>
+                                                    Verify
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </SectionCard>
                     <SectionCard title='Danger Zone' icon={IconTrash} iconColor='text-destructive'>
                         <div className='flex items-center justify-between'>

@@ -10,6 +10,10 @@ import credentialsData from '@/mock/data/credentials'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconLock, IconDots, IconEdit, IconTrash, IconRefresh, IconKey } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const PROVIDERS = [
     { value: 'openAIApi', label: 'OpenAI', color: '#10B981' },
     { value: 'anthropicApi', label: 'Anthropic', color: '#A855F7' },
@@ -114,6 +118,9 @@ function CredentialDialog({ open, onClose, onSave, initial }) {
 
 export default function Credentials() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(credentialsData)
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -137,10 +144,30 @@ export default function Credentials() {
         toast.success('Credential deleted')
     }
 
+
+    if (loading) return (
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='space-y-2'>
+                {Array.from({ length: 8 }, (_, i) => <SkeletonListItem key={i} />)}
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <CredentialDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <CredentialDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete credential?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />            <CredentialDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
@@ -221,7 +248,7 @@ export default function Credentials() {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     className='text-destructive focus:text-destructive'
-                                                    onClick={() => handleDelete(cred.id)}
+                                                    onClick={() => { setConfirmDelete(cred.id); play('click') }}
                                                 >
                                                     <IconTrash size={13} /> Delete
                                                 </DropdownMenuItem>

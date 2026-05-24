@@ -10,6 +10,10 @@ import assistantsData from '@/mock/data/assistants'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconDots, IconEdit, IconCopy, IconTrash, IconRobot, IconMessage, IconCpu } from '@tabler/icons-react'
 
+import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
+import { usePageLoading } from '@/hooks/usePageLoading'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 const MODELS = ['gpt-4o', 'gpt-4o-mini', 'claude-opus-4-5', 'claude-sonnet-4-5', 'gemini-2.0-flash', 'llama-3.3-70b']
 const MODEL_COLORS = {
     'gpt-4o': '#10B981',
@@ -184,6 +188,9 @@ function ChatDialog({ open, onClose, assistant }) {
 
 export default function Assistants() {
     const [search, setSearch] = useState('')
+    const loading = usePageLoading()
+    const { play } = useSound()
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [items, setItems] = useState(assistantsData)
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -212,10 +219,30 @@ export default function Assistants() {
         toast.success('Duplicated')
     }
 
+
+    if (loading) return (
+        <div className='space-y-5'>
+            <div className='flex items-center justify-between'>
+                <div className='h-8 w-48 bg-secondary/70 animate-pulse rounded-lg' />
+                <div className='h-8 w-24 bg-secondary/70 animate-pulse rounded-lg' />
+            </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)}
+            </div>
+        </div>
+    )
     return (
         <div className='space-y-6 animate-fade-in'>
             <AssistantDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <AssistantDialog open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete assistant?'
+                description='This action cannot be undone.'
+                confirmLabel='Delete'
+            />            <AssistantDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
             {chatWith && <ChatDialog open={!!chatWith} onClose={() => setChatWith(null)} assistant={chatWith} />}
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
@@ -269,7 +296,7 @@ export default function Assistants() {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className='text-destructive focus:text-destructive'
-                                                onClick={() => handleDelete(a.id)}
+                                                onClick={() => { setConfirmDelete(a.id); play('click') }}
                                             >
                                                 <IconTrash size={13} /> Delete
                                             </DropdownMenuItem>
