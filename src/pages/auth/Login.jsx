@@ -63,7 +63,7 @@ export default function Login() {
                 <div className='relative z-10 max-w-md text-center'>
                     <div className='inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-primary/30 bg-primary/10'>
                         <IconBolt size={14} className='text-primary' />
-                        <span className='text-xs font-mono text-primary'>Haxon Flow Studio</span>
+                        <span className='text-xs font-mono text-primary'>Haxon Flow</span>
                     </div>
                     <h2 className='font-serif text-5xl text-foreground mb-4 leading-tight'>
                         Build AI workflows <em className='gradient-text not-italic'>at the speed</em> of thought
