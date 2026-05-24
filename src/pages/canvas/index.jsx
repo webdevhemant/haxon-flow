@@ -43,20 +43,16 @@ function FlowNode({ id, data, selected }) {
     const Icon = def.icon
     const color = CATEGORY_COLORS[def.category] || '#6366F1'
     const { deleteNode } = useCanvasStore()
-
     const inputCount = def.inputAnchors.length
     const outputCount = def.outputAnchors.length
 
+    const paramRows = def.inputParams.slice(0, 2).filter((p) => {
+        const val = data.params?.[p.name] ?? p.default
+        return val !== undefined && val !== '' && val !== null
+    })
+
     return (
-        <div
-            className={cn(
-                'relative rounded-xl border bg-card shadow-md transition-all duration-150 group select-none',
-                'min-w-[220px] max-w-[260px]',
-                selected
-                    ? 'border-primary ring-2 ring-primary/25 shadow-primary/15'
-                    : 'border-border hover:border-primary/40 hover:shadow-lg'
-            )}
-        >
+        <div className='relative group select-none' style={{ minWidth: 248, maxWidth: 288 }}>
             {/* Input handles */}
             {def.inputAnchors.map((anchor, idx) => {
                 const pct = inputCount === 1 ? 50 : ((idx + 1) / (inputCount + 1)) * 100
@@ -67,7 +63,13 @@ function FlowNode({ id, data, selected }) {
                         position={Position.Left}
                         id={anchor.id}
                         title={anchor.label}
-                        style={{ background: color, border: '2px solid #1a1a2e', width: 10, height: 10, top: `${pct}%` }}
+                        style={{
+                            background: anchor.optional ? 'hsl(var(--background))' : color,
+                            border: `2.5px solid ${color}`,
+                            width: 13, height: 13,
+                            top: `${pct}%`,
+                            boxShadow: `0 0 10px ${color}55`,
+                        }}
                     />
                 )
             })}
@@ -82,50 +84,128 @@ function FlowNode({ id, data, selected }) {
                         position={Position.Right}
                         id={anchor.id}
                         title={anchor.label}
-                        style={{ background: color, border: '2px solid #1a1a2e', width: 10, height: 10, top: `${pct}%` }}
+                        style={{
+                            background: color,
+                            border: `2.5px solid ${color}90`,
+                            width: 13, height: 13,
+                            top: `${pct}%`,
+                            boxShadow: `0 0 10px ${color}70`,
+                        }}
                     />
                 )
             })}
 
-            {/* Color strip */}
-            <div className='h-1 rounded-t-xl' style={{ background: color }} />
-
-            <div className='p-3'>
-                <div className='flex items-center gap-2 mb-1'>
-                    <div className='rounded-lg p-1.5 shrink-0' style={{ background: color + '20' }}>
-                        <Icon size={12} style={{ color }} />
+            {/* Visual card (overflow-hidden isolates gradient clipping from handles) */}
+            <div
+                className='rounded-2xl overflow-hidden bg-card'
+                style={{
+                    border: selected ? `1.5px solid ${color}` : '1px solid hsl(var(--border))',
+                    boxShadow: selected
+                        ? `0 0 0 3px ${color}22, 0 8px 32px ${color}22, 0 4px 16px rgba(0,0,0,0.35)`
+                        : '0 4px 16px rgba(0,0,0,0.28)',
+                }}
+            >
+                {/* Header */}
+                <div
+                    className='px-3.5 pt-3 pb-2.5'
+                    style={{
+                        background: `linear-gradient(135deg, ${color}20 0%, ${color}07 100%)`,
+                        borderBottom: `1px solid ${color}20`,
+                    }}
+                >
+                    <div className='flex items-center gap-2.5'>
+                        <div
+                            className='rounded-xl p-2 shrink-0 flex items-center justify-center'
+                            style={{ background: color + '22', border: `1px solid ${color}30` }}
+                        >
+                            <Icon size={15} style={{ color }} />
+                        </div>
+                        <div className='flex-1 min-w-0'>
+                            <p className='font-display text-xs font-semibold text-foreground leading-snug truncate'>
+                                {data.label}
+                            </p>
+                            <p className='text-[9px] font-mono uppercase tracking-widest mt-0.5' style={{ color: color + 'bb' }}>
+                                {def.category}
+                            </p>
+                        </div>
+                        <button
+                            onMouseDown={(e) => { e.stopPropagation(); deleteNode(id) }}
+                            className='opacity-0 group-hover:opacity-100 rounded-lg p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/15 transition-all nodrag shrink-0'
+                        >
+                            <IconX size={11} />
+                        </button>
                     </div>
-                    <span className='font-display text-xs font-semibold text-foreground flex-1 truncate'>{data.label}</span>
-                    <button
-                        onMouseDown={(e) => {
-                            e.stopPropagation()
-                            deleteNode(id)
-                        }}
-                        className='opacity-0 group-hover:opacity-100 rounded p-0.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all nodrag shrink-0'
-                    >
-                        <IconX size={11} />
-                    </button>
                 </div>
 
-                <div className='text-[10px] text-muted-foreground/70 mb-2'>{def.category}</div>
-
-                {/* Show first 2 param values */}
-                {def.inputParams.slice(0, 2).map((p) => {
-                    const val = data.params?.[p.name] ?? p.default
-                    if (!val && val !== 0) return null
-                    return (
-                        <div key={p.name} className='text-[9px] font-mono truncate text-muted-foreground mb-0.5'>
-                            <span className='text-muted-foreground/60'>{p.label}:</span>{' '}
-                            <span className='text-foreground/80'>{p.type === 'password' ? '••••••' : String(val).slice(0, 24)}</span>
+                {/* Body */}
+                <div className='px-3.5 py-2.5 min-h-[36px]'>
+                    {paramRows.length > 0 ? (
+                        <div className='space-y-1.5'>
+                            {paramRows.map((p) => {
+                                const val = data.params?.[p.name] ?? p.default
+                                return (
+                                    <div key={p.name} className='flex items-center gap-2'>
+                                        <span className='text-[9px] text-muted-foreground/55 shrink-0 font-medium'>{p.label}</span>
+                                        <div className='flex-1 h-px bg-border/25' />
+                                        <span className='text-[9px] font-mono text-foreground/80 truncate max-w-[100px]'>
+                                            {p.type === 'password' ? '••••••' : String(val).slice(0, 20)}
+                                        </span>
+                                    </div>
+                                )
+                            })}
                         </div>
-                    )
-                })}
+                    ) : def.inputAnchors.length > 0 ? (
+                        <div className='flex flex-wrap gap-1'>
+                            {def.inputAnchors.slice(0, 3).map((a) => (
+                                <span
+                                    key={a.id}
+                                    className='inline-flex items-center gap-1 text-[9px] font-mono rounded px-1.5 py-0.5'
+                                    style={{ background: color + '12', color: color + 'cc', border: `1px solid ${color}20` }}
+                                >
+                                    <span className='h-1 w-1 rounded-full shrink-0' style={{ background: a.optional ? 'transparent' : color, border: a.optional ? `1px solid ${color}` : 'none' }} />
+                                    {a.label}
+                                </span>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className='text-[9px] text-muted-foreground/40 italic'>No inputs required</p>
+                    )}
+                </div>
 
-                {/* I/O row */}
-                <div className='flex items-center justify-between mt-2 pt-1.5 border-t border-border/40 text-[9px] font-mono text-muted-foreground'>
-                    <span>{inputCount} in</span>
-                    <span style={{ color }}>{def.label}</span>
-                    <span>{outputCount} out</span>
+                {/* Footer */}
+                <div
+                    className='flex items-center justify-between px-3.5 py-1.5'
+                    style={{ background: `${color}09`, borderTop: `1px solid ${color}18` }}
+                >
+                    <div className='flex items-center gap-1.5'>
+                        {def.inputAnchors.slice(0, 4).map((a) => (
+                            <div
+                                key={a.id}
+                                className='h-1.5 w-1.5 rounded-full transition-transform'
+                                style={{
+                                    background: a.optional ? 'transparent' : color + '90',
+                                    border: `1.5px solid ${a.optional ? color + '55' : color}`,
+                                }}
+                                title={a.label}
+                            />
+                        ))}
+                        {inputCount > 0 && (
+                            <span className='text-[9px] font-mono text-muted-foreground/55 ml-0.5'>{inputCount} in</span>
+                        )}
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                        {outputCount > 0 && (
+                            <span className='text-[9px] font-mono text-muted-foreground/55 mr-0.5'>{outputCount} out</span>
+                        )}
+                        {def.outputAnchors.slice(0, 4).map((a) => (
+                            <div
+                                key={a.id}
+                                className='h-1.5 w-1.5 rounded-full'
+                                style={{ background: color, boxShadow: `0 0 5px ${color}90` }}
+                                title={a.label}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
@@ -251,15 +331,18 @@ function PaletteItem({ type, def, onDragStart }) {
             draggable
             onDragStart={(e) => onDragStart(e, type)}
             onClick={handleClick}
-            className='flex items-center gap-2 rounded-lg px-2 py-1.5 cursor-grab hover:bg-secondary transition-colors active:cursor-grabbing group/item'
+            className='flex items-center gap-2.5 rounded-xl px-2.5 py-2 cursor-grab active:cursor-grabbing group/item transition-all hover:bg-secondary/60 border border-transparent hover:border-border/50'
             title={def.description}
         >
-            <div className='rounded-md p-1 shrink-0' style={{ background: color + '20' }}>
-                <Icon size={11} style={{ color }} />
+            <div
+                className='rounded-lg p-1.5 shrink-0 transition-transform group-hover/item:scale-110'
+                style={{ background: color + '20', border: `1px solid ${color}28` }}
+            >
+                <Icon size={12} style={{ color }} />
             </div>
             <div className='min-w-0 flex-1'>
-                <div className='text-[11px] font-medium text-foreground truncate'>{def.label}</div>
-                <div className='text-[9px] text-muted-foreground truncate'>{def.description}</div>
+                <div className='text-[11px] font-medium text-foreground truncate leading-tight'>{def.label}</div>
+                <div className='text-[9px] text-muted-foreground/70 truncate'>{def.description}</div>
             </div>
         </div>
     )
@@ -565,6 +648,11 @@ function CanvasInner() {
         play('nodeConnect')
     }, [onConnect, play])
 
+    const onEdgeDoubleClick = useCallback((_, edge) => {
+        onEdgesChange([{ type: 'remove', id: edge.id }])
+        toast.success('Connection removed')
+    }, [onEdgesChange])
+
     const onNodeClick = useCallback((_, node) => {
         setSelectedNode(node)
     }, [])
@@ -624,17 +712,18 @@ function CanvasInner() {
                         onConnect={handleConnect}
                         onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
+                        onEdgeDoubleClick={onEdgeDoubleClick}
                         nodeTypes={nodeTypes}
                         fitView
                         fitViewOptions={{ padding: 0.25 }}
                         className='bg-background'
-                        defaultEdgeOptions={{ animated: true, style: { stroke: '#6366F1', strokeWidth: 1.5 } }}
-                        connectionLineStyle={{ stroke: '#6366F1', strokeWidth: 1.5, strokeDasharray: '5 5' }}
-                        deleteKeyCode='Delete'
+                        defaultEdgeOptions={{ animated: true, style: { stroke: '#6366F1', strokeWidth: 2 } }}
+                        connectionLineStyle={{ stroke: '#6366F1', strokeWidth: 2, strokeDasharray: '6 4' }}
+                        deleteKeyCode={['Delete', 'Backspace']}
                         multiSelectionKeyCode='Shift'
                         proOptions={{ hideAttribution: true }}
                     >
-                        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color='rgba(255,255,255,0.05)' />
+                        <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color='rgba(255,255,255,0.07)' />
                         <Controls
                             showInteractive={false}
                             className='!bg-card !border-border [&_button]:!bg-card [&_button]:!border-border [&_button]:!text-muted-foreground [&_button:hover]:!bg-secondary'
@@ -719,7 +808,7 @@ function buildInitialEdges(nodes) {
                 target: tgt,
                 targetHandle: tgtH,
                 animated: true,
-                style: { stroke: '#6366F1', strokeWidth: 1.5 }
+                style: { stroke: '#6366F1', strokeWidth: 2 }
             })
         }
     }

@@ -6,6 +6,22 @@ import { useSound } from '@/hooks/useSound'
 import { toast } from 'sonner'
 import { IconArrowLeft, IconMailForward } from '@tabler/icons-react'
 
+function NeuralBg() {
+    return (
+        <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+            <div className='absolute inset-0 bg-grid opacity-20' />
+            <div className='absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/8 blur-[120px]' />
+            <div className='absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-purple/6 blur-[100px]' />
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className='absolute rounded-full border border-primary/10 animate-float'
+                    style={{ width: `${80 + i * 40}px`, height: `${80 + i * 40}px`,
+                        top: `${10 + i * 12}%`, left: `${5 + i * 14}%`,
+                        animationDelay: `${i * 0.8}s`, opacity: 0.3 - i * 0.04 }} />
+            ))}
+        </div>
+    )
+}
+
 export default function ResetPassword() {
     const navigate = useNavigate()
     const { play } = useSound()
@@ -30,8 +46,7 @@ export default function ResetPassword() {
 
     return (
         <div className='min-h-screen bg-background flex items-center justify-center p-8 relative'>
-            <div className='absolute inset-0 bg-grid opacity-15 pointer-events-none' />
-            <div className='absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-primary/6 blur-[120px] pointer-events-none' />
+            <NeuralBg />
 
             <div className='relative w-full max-w-sm animate-slide-up'>
                 <Link

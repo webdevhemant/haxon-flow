@@ -55,6 +55,24 @@ export default function Analytics() {
         setTimeout(() => setRefreshing(false), 1200)
     }
 
+    const handleExport = () => {
+        play('click')
+        const count = range === '7d' ? 7 : range === '30d' ? 20 : range === '90d' ? 30 : 52
+        const rows = [
+            ['Date', 'Executions', 'Errors'],
+            ...executionTimeline.slice(-count).map((r) => [r.date, r.executions, r.errors])
+        ]
+        const csv = rows.map((r) => r.join(',')).join('\n')
+        const blob = new Blob([csv], { type: 'text/csv' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `analytics-${range}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+        toast.success('Analytics exported')
+    }
+
     if (loading) return (
         <div className='space-y-5'>
             <div className='h-8 w-64 bg-secondary/70 animate-pulse rounded-lg' />
@@ -94,8 +112,8 @@ export default function Analytics() {
                         <IconRefresh size={12} className={cn('transition-transform', refreshing && 'animate-spin')} />
                         Refresh
                     </Button>
-                    <Button variant='outline' size='sm' className='gap-1.5 h-7 text-xs' onClick={() => play('click')}>
-                        <IconDownload size={12} /> Export
+                    <Button variant='outline' size='sm' className='gap-1.5 h-7 text-xs' onClick={handleExport}>
+                        <IconDownload size={12} /> Export CSV
                     </Button>
                 </div>
             </div>
