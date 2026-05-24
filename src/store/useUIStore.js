@@ -22,7 +22,20 @@ export const useUIStore = create(
 
             // font size: 'sm' | 'md' | 'lg'
             fontSize: 'md',
-            setFontSize: (val) => set({ fontSize: val })
+            setFontSize: (val) => set({ fontSize: val }),
+
+            // sound pack: 'default' | 'crisp' | 'soft' | 'retro'
+            soundPack: 'default',
+            setSoundPack: (val) => set({ soundPack: val }),
+
+            // compact density
+            compactMode: false,
+            setCompactMode: (val) => set({ compactMode: val }),
+            toggleCompactMode: () => set((s) => ({ compactMode: !s.compactMode })),
+
+            // reduced motion
+            reducedMotion: false,
+            setReducedMotion: (val) => set({ reducedMotion: val })
         }),
         { name: 'haxon-ui' }
     )

@@ -10,8 +10,16 @@ import {
     IconUser, IconKey, IconBell, IconCreditCard, IconShield, IconCheck, IconEdit,
     IconVolume, IconVolumeOff, IconMusic, IconPalette, IconChevronRight,
     IconEye, IconEyeOff, IconTrash, IconDeviceFloppy, IconLogout, IconSettings2,
-    IconTypography, IconDroplet, IconBolt, IconMailCheck, IconAlertCircle, IconChartBar, IconBrain
+    IconTypography, IconDroplet, IconBolt, IconMailCheck, IconAlertCircle, IconChartBar, IconBrain,
+    IconWaveSine, IconSpeakerphone
 } from '@tabler/icons-react'
+
+const SOUND_PACKS = [
+    { id: 'default', label: 'Default', desc: 'Smooth sine-wave tones' },
+    { id: 'crisp', label: 'Crisp', desc: 'Sharp triangle-wave clicks' },
+    { id: 'soft', label: 'Soft', desc: 'Gentle, low-volume feedback' },
+    { id: 'retro', label: 'Retro', desc: 'Chiptune square-wave bleeps' }
+]
 
 const PLAN_FEATURES = ['Unlimited flows', 'All models', 'Priority support', '10M tokens/month', 'Custom domains', 'SSO & SAML']
 
@@ -78,7 +86,7 @@ function NotifRow({ icon: Icon, iconColor, label, desc, priority, enabled, onCha
 }
 
 export default function Account() {
-    const { soundEnabled, setSoundEnabled, canvasMusicEnabled, setCanvasMusicEnabled, colorTheme, setColorTheme, fontSize, setFontSize } = useUIStore()
+    const { soundEnabled, setSoundEnabled, canvasMusicEnabled, setCanvasMusicEnabled, colorTheme, setColorTheme, fontSize, setFontSize, soundPack, setSoundPack, compactMode, setCompactMode, reducedMotion, setReducedMotion } = useUIStore()
     const { play } = useSound()
 
     const [activeTab, setActiveTab] = useState('profile')
@@ -178,10 +186,32 @@ export default function Account() {
                     <SectionCard title='Sound & Audio' icon={IconVolume} iconColor='text-cyan'>
                         <Toggle enabled={soundEnabled} onChange={setSoundEnabled}
                             label='Sound Effects'
-                            description='Subtle audio feedback on clicks, actions, and confirmations' />
+                            description='Audio feedback on clicks, actions, and confirmations' />
                         <Toggle enabled={canvasMusicEnabled} onChange={setCanvasMusicEnabled}
                             label='Canvas Ambient Music'
                             description='Soft drone tones while working in the flow canvas editor' />
+
+                        {soundEnabled && (
+                            <div className='mt-3 pt-3 border-t border-border/50'>
+                                <p className='text-xs font-medium text-foreground mb-2'>Sound Pack</p>
+                                <p className='text-xs text-muted-foreground mb-3'>Choose the character of your UI sounds. Click to preview.</p>
+                                <div className='grid grid-cols-2 gap-2'>
+                                    {SOUND_PACKS.map((p) => (
+                                        <button key={p.id} onClick={() => { setSoundPack(p.id); play('click') }}
+                                            className={cn('relative flex flex-col items-start gap-0.5 rounded-xl border px-3 py-2.5 text-left transition-all',
+                                                soundPack === p.id ? 'border-primary bg-primary/8 shadow-sm' : 'border-border hover:border-primary/30 hover:bg-secondary/50')}>
+                                            <span className='text-xs font-semibold text-foreground'>{p.label}</span>
+                                            <span className='text-[10px] text-muted-foreground'>{p.desc}</span>
+                                            {soundPack === p.id && (
+                                                <span className='absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-primary flex items-center justify-center'>
+                                                    <IconCheck size={8} className='text-white' />
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </SectionCard>
 
                     {/* Color Themes */}
@@ -209,37 +239,29 @@ export default function Account() {
 
                     {/* Typography */}
                     <SectionCard title='Typography & Display' icon={IconTypography} iconColor='text-warning'>
-                        <div className='mb-4'>
-                            <p className='text-xs text-muted-foreground mb-3'>Interface font size — affects all text outside the canvas.</p>
-                            <div className='flex gap-2'>
-                                {[{ id: 'sm', label: 'Small', size: 'text-xs' }, { id: 'md', label: 'Default', size: 'text-sm' }, { id: 'lg', label: 'Large', size: 'text-base' }].map((f) => (
-                                    <button key={f.id} onClick={() => { setFontSize(f.id); play('click') }}
-                                        className={cn('flex-1 rounded-lg border px-3 py-2.5 transition-all text-center',
-                                            fontSize === f.id ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground')}>
-                                        <div className={cn('font-semibold leading-none mb-1', f.size)}>{f.label}</div>
-                                        <div className='text-[10px] opacity-60'>Aa</div>
-                                    </button>
-                                ))}
-                            </div>
+                        <p className='text-xs text-muted-foreground mb-3'>Interface font size — applies across all product pages.</p>
+                        <div className='flex gap-2 mb-4'>
+                            {[{ id: 'sm', label: 'Small', size: 'text-xs' }, { id: 'md', label: 'Default', size: 'text-sm' }, { id: 'lg', label: 'Large', size: 'text-base' }].map((f) => (
+                                <button key={f.id} onClick={() => { setFontSize(f.id); play('click') }}
+                                    className={cn('flex-1 rounded-lg border px-3 py-2.5 transition-all text-center',
+                                        fontSize === f.id ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground')}>
+                                    <div className={cn('font-semibold leading-none mb-1', f.size)}>{f.label}</div>
+                                    <div className='text-[10px] opacity-60'>Aa</div>
+                                </button>
+                            ))}
                         </div>
                         <div className='pt-3 border-t border-border/50'>
-                            <Toggle enabled={true} onChange={() => toast.info('Coming soon')}
+                            <Toggle enabled={reducedMotion} onChange={setReducedMotion}
                                 label='Reduce motion'
-                                description='Minimize transitions and animations throughout the interface' />
+                                description='Disable transitions and animations throughout the interface' />
                         </div>
                     </SectionCard>
 
                     {/* Interface */}
                     <SectionCard title='Interface' icon={IconPalette} iconColor='text-primary'>
-                        <Toggle enabled={true} onChange={() => toast.info('Theme switching coming soon')}
-                            label='Dark Mode'
-                            description='The interface uses a dark theme optimized for extended use' />
-                        <Toggle enabled={false} onChange={() => toast.info('Coming soon')}
+                        <Toggle enabled={compactMode} onChange={setCompactMode}
                             label='Compact Density'
-                            description='Reduce padding and spacing for higher information density' />
-                        <Toggle enabled={true} onChange={() => toast.info('Coming soon')}
-                            label='Sidebar icons only'
-                            description='Collapse sidebar to icons-only mode by default on load' />
+                            description='Reduce padding and spacing for a denser information layout' />
                     </SectionCard>
                 </div>
             )}

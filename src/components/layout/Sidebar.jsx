@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useLocation, Link } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -12,7 +12,7 @@ import {
     IconTool, IconLock, IconVariable, IconKey, IconFiles, IconDatabase, IconTestPipe,
     IconChartHistogram, IconList, IconSettings, IconChevronLeft, IconChevronRight,
     IconBolt, IconBrain, IconBook2, IconChartBar, IconServer2, IconPlugConnected,
-    IconLogin, IconUserPlus, IconMailCheck, IconLayoutDashboard, IconVolume,
+    IconLogin, IconUserPlus, IconMailCheck, IconVolume,
     IconVolumeOff, IconMusic
 } from '@tabler/icons-react'
 
@@ -130,23 +130,6 @@ export function Sidebar() {
                 <div className={cn('relative flex items-center border-b border-border py-4', collapsed ? 'justify-center px-3' : 'px-4')}>
                     <Logo collapsed={collapsed} />
                 </div>
-
-                {/* Status + Back to landing */}
-                {!collapsed && (
-                    <div className='relative mx-3 mt-3 space-y-2'>
-                        <div className='flex items-center gap-2 rounded-lg bg-success/8 border border-success/15 px-3 py-2'>
-                            <span className='relative flex h-1.5 w-1.5'>
-                                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75' />
-                                <span className='relative inline-flex h-1.5 w-1.5 rounded-full bg-success' />
-                            </span>
-                            <span className='text-[10px] font-mono text-success flex-1'>All systems operational</span>
-                        </div>
-                        <Link to='/' onClick={() => play('click')}
-                            className='flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-[10px] font-mono text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all'>
-                            <IconLayoutDashboard size={11} /> Back to Landing
-                        </Link>
-                    </div>
-                )}
 
                 {/* Navigation */}
                 <ScrollArea className='relative flex-1 py-3'>

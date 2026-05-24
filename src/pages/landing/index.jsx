@@ -86,11 +86,15 @@ function NeuralCanvas() {
 /* ── Scroll reveal ── */
 function useReveal() {
     useEffect(() => {
-        const els = document.querySelectorAll('.reveal-hidden')
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('reveal-visible'); obs.unobserve(e.target) } })
-        }, { threshold: 0.1 })
-        els.forEach((el) => obs.observe(el))
+        const reveal = () => {
+            const els = document.querySelectorAll('.reveal-hidden:not(.reveal-visible)')
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('reveal-visible'); obs.unobserve(e.target) } })
+            }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' })
+            els.forEach((el) => obs.observe(el))
+            return obs
+        }
+        const obs = reveal()
         return () => obs.disconnect()
     }, [])
 }
@@ -163,15 +167,13 @@ function FeatureCard({ title, desc, icon: Icon, color, accent, className }) {
 /* ── Step card ── */
 function StepCard({ num, title, desc, icon: Icon, color, delay }) {
     return (
-        <div className='reveal-hidden flex flex-col' style={{ transitionDelay: `${delay}s` }}>
-            <div className='relative mb-5'>
-                <div className='h-14 w-14 rounded-2xl flex items-center justify-center text-sm font-mono font-bold' style={{ background: color + '15', border: `1px solid ${color}25`, color }}>
-                    {num}
-                </div>
+        <div className='animate-slide-up flex flex-col' style={{ animationDelay: `${delay + 0.1}s` }}>
+            <div className='h-12 w-12 rounded-2xl flex items-center justify-center text-sm font-mono font-bold mb-5 shrink-0' style={{ background: color + '15', border: `1px solid ${color}25`, color }}>
+                {num}
             </div>
             <div className='flex items-center gap-2 mb-2'>
                 <Icon size={15} style={{ color }} />
-                <span className='font-display font-bold text-base text-foreground'>{title}</span>
+                <span className='font-display font-bold text-sm text-foreground'>{title}</span>
             </div>
             <p className='text-sm text-muted-foreground leading-relaxed'>{desc}</p>
         </div>
@@ -392,9 +394,9 @@ export default function Landing() {
                 <div className='max-w-6xl mx-auto'>
                     <div className='mb-14 reveal-hidden'>
                         <Badge variant='outline' className='mb-4 text-xs font-mono border-primary/25 bg-primary/5 text-primary'>Platform</Badge>
-                        <h2 className='text-4xl sm:text-5xl text-foreground leading-[1.05] tracking-tight'
-                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                            Every piece your<br /><span className='gradient-text'>AI stack needs.</span>
+                        <h2 className='text-foreground leading-tight tracking-tight'
+                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 3.2rem)' }}>
+                            Every piece your <span className='gradient-text'>AI stack needs.</span>
                         </h2>
                         <p className='text-muted-foreground max-w-sm text-sm mt-4'>From prototype to production — no gaps, no glue code, no surprises.</p>
                     </div>
@@ -414,14 +416,15 @@ export default function Landing() {
                 <div className='relative max-w-5xl mx-auto'>
                     <div className='mb-16 reveal-hidden'>
                         <Badge variant='outline' className='mb-4 text-xs font-mono border-purple/25 bg-purple/5 text-purple'>How it works</Badge>
-                        <h2 className='text-4xl sm:text-5xl text-foreground leading-[1.05] tracking-tight'
-                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                            Idea to live API<br /><span className='gradient-text-purple'>in a single session.</span>
+                        <h2 className='text-foreground leading-tight tracking-tight'
+                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 3.2rem)' }}>
+                            From idea to live API —{' '}
+                            <span className='gradient-text-purple'>in a single session.</span>
                         </h2>
                     </div>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 relative'>
-                        <div className='hidden md:block absolute top-7 left-[33%] right-[33%] h-px bg-gradient-to-r from-primary/30 to-purple/30' />
-                        <div className='hidden md:block absolute top-7 left-[66%] right-0 h-px bg-gradient-to-r from-purple/30 to-neon/30' />
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative'>
+                        <div className='hidden md:block absolute top-6 left-[33%] right-[33%] h-px bg-gradient-to-r from-primary/30 to-purple/30' />
+                        <div className='hidden md:block absolute top-6 left-[66%] right-0 h-px bg-gradient-to-r from-purple/30 to-neon/30' />
                         {STEPS.map((s) => <StepCard key={s.n} {...s} />)}
                     </div>
                 </div>
@@ -435,7 +438,7 @@ export default function Landing() {
                             <Badge variant='outline' className='mb-4 text-xs font-mono border-neon/25 bg-neon/5 text-neon'>For engineers</Badge>
                             <h2 className='text-3xl sm:text-4xl mb-4 leading-tight'
                                 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                                Code when you<br />want to.
+                                Code when you want to.
                             </h2>
                             <p className='text-sm text-muted-foreground leading-relaxed mb-6'>
                                 Every deployed flow exposes a typed REST API. Call it from any language, any framework. Hook in custom functions, write your own nodes, or extend with the SDK.
@@ -477,7 +480,7 @@ export default function Landing() {
                     <div className='text-center mb-14 reveal-hidden'>
                         <h2 className='text-3xl sm:text-4xl text-foreground'
                             style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                            Teams that move fast<br />use Haxon Flow.
+                            Teams that move fast use Haxon Flow.
                         </h2>
                     </div>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -509,7 +512,7 @@ export default function Landing() {
                 <div className='relative max-w-3xl mx-auto text-center reveal-hidden'>
                     <h2 className='text-4xl sm:text-5xl md:text-6xl mb-6 leading-[0.95]'
                         style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                        Your next AI feature<br /><span className='gradient-text'>ships today.</span>
+                        Your next AI feature — <span className='gradient-text'>ships today.</span>
                     </h2>
                     <p className='text-muted-foreground text-base mb-10 max-w-md mx-auto'>
                         Stop building scaffolding. Start shipping outcomes. Haxon Flow is free to try — no credit card, no lock-in.
