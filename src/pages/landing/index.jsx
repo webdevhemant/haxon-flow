@@ -168,11 +168,13 @@ function FeatureCard({ title, desc, icon: Icon, color, accent, className }) {
 function StepCard({ num, title, desc, icon: Icon, color, delay }) {
     return (
         <div className='animate-slide-up flex flex-col' style={{ animationDelay: `${delay + 0.1}s` }}>
-            <div className='h-12 w-12 rounded-2xl flex items-center justify-center text-sm font-mono font-bold mb-5 shrink-0' style={{ background: color + '15', border: `1px solid ${color}25`, color }}>
+            {/* Step badge — circle ring with number, clearly visible */}
+            <div className='mb-6 h-11 w-11 rounded-full flex items-center justify-center font-mono font-bold text-sm shrink-0'
+                style={{ border: `2px solid ${color}`, color, background: `${color}12` }}>
                 {num}
             </div>
             <div className='flex items-center gap-2 mb-2'>
-                <Icon size={15} style={{ color }} />
+                <Icon size={14} style={{ color }} />
                 <span className='font-display font-bold text-sm text-foreground'>{title}</span>
             </div>
             <p className='text-sm text-muted-foreground leading-relaxed'>{desc}</p>
@@ -423,8 +425,8 @@ export default function Landing() {
                         </h2>
                     </div>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative'>
-                        <div className='hidden md:block absolute top-6 left-[33%] right-[33%] h-px bg-gradient-to-r from-primary/30 to-purple/30' />
-                        <div className='hidden md:block absolute top-6 left-[66%] right-0 h-px bg-gradient-to-r from-purple/30 to-neon/30' />
+                        <div className='hidden md:block absolute top-[22px] left-[36%] right-[36%] h-px bg-gradient-to-r from-primary/40 to-purple/40' />
+                        <div className='hidden md:block absolute top-[22px] left-[69%] right-[4%] h-px bg-gradient-to-r from-purple/40 to-neon/40' />
                         {STEPS.map((s) => <StepCard key={s.n} {...s} />)}
                     </div>
                 </div>
@@ -436,8 +438,8 @@ export default function Landing() {
                     <div className='reveal-hidden grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded-2xl border border-border/50 bg-card/30 p-8 lg:p-12'>
                         <div>
                             <Badge variant='outline' className='mb-4 text-xs font-mono border-neon/25 bg-neon/5 text-neon'>For engineers</Badge>
-                            <h2 className='text-3xl sm:text-4xl mb-4 leading-tight'
-                                style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
+                            <h2 className='mb-4 leading-tight text-foreground'
+                                style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)' }}>
                                 Code when you want to.
                             </h2>
                             <p className='text-sm text-muted-foreground leading-relaxed mb-6'>
@@ -478,9 +480,10 @@ export default function Landing() {
             <section className='py-20 px-5 sm:px-10'>
                 <div className='max-w-5xl mx-auto'>
                     <div className='text-center mb-14 reveal-hidden'>
-                        <h2 className='text-3xl sm:text-4xl text-foreground'
-                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
-                            Teams that move fast use Haxon Flow.
+                        <Badge variant='outline' className='mb-4 text-xs font-mono border-primary/25 bg-primary/5 text-primary'>What teams say</Badge>
+                        <h2 className='text-foreground leading-tight tracking-tight'
+                            style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 3.2rem)' }}>
+                            Trusted by teams that <span className='gradient-text'>ship fast.</span>
                         </h2>
                     </div>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -510,8 +513,8 @@ export default function Landing() {
                 <div className='absolute inset-0 bg-grid opacity-[0.06] pointer-events-none' />
                 <div className='absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[300px] bg-primary/8 blur-[120px] pointer-events-none' />
                 <div className='relative max-w-3xl mx-auto text-center reveal-hidden'>
-                    <h2 className='text-4xl sm:text-5xl md:text-6xl mb-6 leading-[0.95]'
-                        style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 }}>
+                    <h2 className='mb-6 leading-tight tracking-tight'
+                        style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 'clamp(2.4rem, 5vw, 4rem)' }}>
                         Your next AI feature — <span className='gradient-text'>ships today.</span>
                     </h2>
                     <p className='text-muted-foreground text-base mb-10 max-w-md mx-auto'>
