@@ -174,10 +174,10 @@ export default function APIKey() {
             <ConfirmDialog
                 open={!!confirmDelete}
                 onClose={() => setConfirmDelete(null)}
-                onConfirm={() => handleDelete(confirmDelete)}
-                title='Delete API key?'
-                description='This action cannot be undone.'
-                confirmLabel='Delete'
+                onConfirm={() => handleRevoke(confirmDelete)}
+                title='Revoke API key?'
+                description='This key will stop working immediately. This cannot be undone.'
+                confirmLabel='Revoke key'
             />
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>

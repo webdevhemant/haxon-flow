@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { IconPlus, IconSearch, IconCopy, IconBookmark, IconBolt, IconSparkles, IconDots, IconEdit, IconTrash, IconCheck } from '@tabler/icons-react'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useSound } from '@/hooks/useSound'
 
 const INITIAL_PROMPTS = [
     {
@@ -307,12 +309,14 @@ function UsePromptDialog({ prompt, onClose }) {
 
 export default function PromptLibrary() {
     const loading = usePageLoading()
+    const { play } = useSound()
     const [search, setSearch] = useState('')
     const [category, setCategory] = useState('All')
     const [items, setItems] = useState(INITIAL_PROMPTS)
     const [bookmarks, setBookmarks] = useState(() => new Set(INITIAL_PROMPTS.filter((p) => p.bookmarked).map((p) => p.id)))
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [using, setUsing] = useState(null)
 
     const filtered = items.filter((p) => {
@@ -368,7 +372,15 @@ export default function PromptLibrary() {
     return (
         <div className='space-y-6 animate-fade-in'>
             <PromptDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <PromptDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+            {editing && <PromptDialog key={editing.id ?? editing.name} open={true} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />}
+            <ConfirmDialog
+                open={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                onConfirm={() => handleDelete(confirmDelete)}
+                title='Delete prompt?'
+                description='This will permanently remove the prompt from your library.'
+                confirmLabel='Delete'
+            />
             <UsePromptDialog prompt={using} onClose={() => setUsing(null)} />
 
             <div className='flex flex-col sm:flex-row gap-4'>

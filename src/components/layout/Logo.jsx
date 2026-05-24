@@ -43,7 +43,6 @@ export function Logo({ collapsed = false, className }) {
                         Haxon
                         <span className='gradient-text'>Flow</span>
                     </span>
-                    <span className='text-[9px] font-mono text-muted-foreground tracking-widest uppercase mt-0.5'>AI Workflow Studio</span>
                 </div>
             )}
         </div>

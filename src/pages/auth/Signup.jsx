@@ -4,9 +4,39 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSound } from '@/hooks/useSound'
 import { toast } from 'sonner'
-import { IconArrowLeft, IconBrandGithub, IconBrandGoogle, IconEye, IconEyeOff, IconCheck } from '@tabler/icons-react'
+import { IconArrowLeft, IconBrandGithub, IconBrandGoogle, IconEye, IconEyeOff, IconCheck, IconSparkles } from '@tabler/icons-react'
 
-const PERKS = ['Free forever plan', 'No credit card required', 'Deploy unlimited flows', 'All LLM models included']
+const PERKS = [
+    { label: 'Free forever plan', sub: 'No credit card required' },
+    { label: 'All LLM models included', sub: 'GPT-4o, Claude, Gemini & more' },
+    { label: 'Deploy unlimited flows', sub: 'Scale from prototype to production' },
+    { label: '100+ pre-built AI nodes', sub: 'Start building in minutes' },
+]
+
+function NeuralBg() {
+    return (
+        <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+            <div className='absolute inset-0 bg-grid opacity-20' />
+            <div className='absolute top-1/3 left-1/4 w-96 h-96 rounded-full bg-neon/6 blur-[120px]' />
+            <div className='absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-primary/8 blur-[100px]' />
+            <div className='absolute top-10 right-10 w-48 h-48 rounded-full bg-purple/6 blur-[80px]' />
+            {[...Array(6)].map((_, i) => (
+                <div
+                    key={i}
+                    className='absolute rounded-full border border-neon/10 animate-float'
+                    style={{
+                        width: `${60 + i * 35}px`,
+                        height: `${60 + i * 35}px`,
+                        top: `${8 + i * 13}%`,
+                        left: `${8 + i * 13}%`,
+                        animationDelay: `${i * 0.9}s`,
+                        opacity: 0.25 - i * 0.03
+                    }}
+                />
+            ))}
+        </div>
+    )
+}
 
 export default function Signup() {
     const navigate = useNavigate()
@@ -39,33 +69,39 @@ export default function Signup() {
 
     return (
         <div className='min-h-screen bg-background flex'>
-            {/* Left */}
+            {/* Left panel */}
             <div className='hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-card/40 border-r border-border overflow-hidden'>
-                <div className='absolute inset-0 bg-grid opacity-20 pointer-events-none' />
-                <div className='absolute top-1/3 left-1/4 w-80 h-80 rounded-full bg-neon/6 blur-[100px] pointer-events-none' />
-                <div className='absolute bottom-1/4 right-1/3 w-64 h-64 rounded-full bg-primary/8 blur-[80px] pointer-events-none' />
-                <div className='relative z-10 max-w-sm'>
-                    <h2 className='font-serif text-4xl text-foreground mb-6 leading-tight'>
-                        Everything you need to
-                        <br />
-                        <em className='gradient-text-neon not-italic'>ship AI faster.</em>
+                <NeuralBg />
+                <div className='relative z-10 max-w-md text-center'>
+                    <div className='inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-neon/30 bg-neon/10'>
+                        <IconSparkles size={13} className='text-neon' />
+                        <span className='text-xs font-mono text-neon'>Start for free today</span>
+                    </div>
+                    <h2 className='font-serif text-5xl text-foreground mb-4 leading-tight'>
+                        Everything you need to <em className='gradient-text-neon not-italic'>ship AI faster.</em>
                     </h2>
-                    <div className='space-y-3'>
+                    <p className='text-muted-foreground text-sm leading-relaxed mb-10'>
+                        Build, test, and deploy AI workflows visually. No code required.
+                    </p>
+
+                    <div className='grid grid-cols-2 gap-3 mb-10 text-left'>
                         {PERKS.map((p) => (
-                            <div key={p} className='flex items-center gap-3 text-sm text-muted-foreground'>
-                                <div className='h-5 w-5 rounded-full bg-neon/15 border border-neon/30 flex items-center justify-center shrink-0'>
+                            <div key={p.label} className='glass rounded-xl p-4 border border-border hover:border-neon/20 transition-colors'>
+                                <div className='h-6 w-6 rounded-full bg-neon/15 border border-neon/30 flex items-center justify-center mb-3'>
                                     <IconCheck size={11} className='text-neon' />
                                 </div>
-                                {p}
+                                <div className='text-sm font-semibold text-foreground leading-snug'>{p.label}</div>
+                                <div className='text-[11px] text-muted-foreground mt-0.5'>{p.sub}</div>
                             </div>
                         ))}
                     </div>
-                    <div className='mt-10 glass rounded-xl p-4 border-gradient'>
+
+                    <div className='glass rounded-xl p-4 border-gradient text-left'>
                         <p className='text-xs text-muted-foreground italic leading-relaxed'>
                             "We shipped a production AI support agent in 2 days. Haxon Flow is genuinely magical."
                         </p>
                         <div className='flex items-center gap-2 mt-3'>
-                            <div className='h-7 w-7 rounded-full bg-gradient-to-br from-primary to-cyan flex items-center justify-center text-xs font-bold text-white'>
+                            <div className='h-7 w-7 rounded-full bg-gradient-to-br from-neon/60 to-primary flex items-center justify-center text-xs font-bold text-white shrink-0'>
                                 S
                             </div>
                             <div className='text-xs'>
@@ -77,7 +113,7 @@ export default function Signup() {
                 </div>
             </div>
 
-            {/* Right */}
+            {/* Right panel — form */}
             <div className='flex-1 flex flex-col items-center justify-center p-8 relative'>
                 <div className='absolute inset-0 bg-dot opacity-10 pointer-events-none' />
                 <div className='relative w-full max-w-sm animate-slide-up'>
@@ -112,6 +148,7 @@ export default function Signup() {
                             </Button>
                         ))}
                     </div>
+
                     <div className='flex items-center gap-3 mb-6'>
                         <div className='flex-1 h-px bg-border' />
                         <span className='text-xs text-muted-foreground'>or</span>
@@ -151,13 +188,9 @@ export default function Signup() {
                         </Button>
                         <p className='text-center text-[10px] text-muted-foreground'>
                             By signing up you agree to our{' '}
-                            <a href='#' className='underline hover:text-foreground'>
-                                Terms
-                            </a>{' '}
+                            <a href='#' className='underline hover:text-foreground'>Terms</a>{' '}
                             and{' '}
-                            <a href='#' className='underline hover:text-foreground'>
-                                Privacy Policy
-                            </a>
+                            <a href='#' className='underline hover:text-foreground'>Privacy Policy</a>
                         </p>
                     </form>
 
