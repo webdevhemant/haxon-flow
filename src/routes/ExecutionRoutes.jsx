@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 
 // project imports
-import Loadable from '@/ui-component/loading/Loadable'
+import Loadable from '@/components/loading/Loadable'
 import MinimalLayout from '@/layout/MinimalLayout'
 
 // canvas routing

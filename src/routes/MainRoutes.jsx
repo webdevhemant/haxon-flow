@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import MainLayout from '@/components/layout/MainLayout'
-import Loadable from '@/ui-component/loading/Loadable'
+import Loadable from '@/components/loading/Loadable'
 
 const Chatflows = Loadable(lazy(() => import('@/pages/chatflows')))
 const Agentflows = Loadable(lazy(() => import('@/pages/agentflows')))
