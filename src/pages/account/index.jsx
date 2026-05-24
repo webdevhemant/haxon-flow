@@ -9,16 +9,26 @@ import { toast } from 'sonner'
 import {
     IconUser, IconKey, IconBell, IconCreditCard, IconShield, IconCheck, IconEdit,
     IconVolume, IconVolumeOff, IconMusic, IconPalette, IconChevronRight,
-    IconEye, IconEyeOff, IconTrash, IconDeviceFloppy, IconLogout
+    IconEye, IconEyeOff, IconTrash, IconDeviceFloppy, IconLogout, IconSettings2,
+    IconTypography, IconDroplet, IconBolt, IconMailCheck, IconAlertCircle, IconChartBar, IconBrain
 } from '@tabler/icons-react'
 
 const PLAN_FEATURES = ['Unlimited flows', 'All models', 'Priority support', '10M tokens/month', 'Custom domains', 'SSO & SAML']
+
+const COLOR_THEMES = [
+    { id: 'default', label: 'Default', primary: '#009EFF', bg: '#06080f', desc: 'Electric blue' },
+    { id: 'midnight', label: 'Midnight', primary: '#009EFF', bg: '#03040c', desc: 'Deep black' },
+    { id: 'ocean', label: 'Ocean', primary: '#00D4FF', bg: '#040b16', desc: 'Teal depths' },
+    { id: 'forest', label: 'Forest', primary: '#00E676', bg: '#030d06', desc: 'Neon green' },
+    { id: 'sunset', label: 'Sunset', primary: '#FF8C00', bg: '#0d0602', desc: 'Warm amber' },
+    { id: 'rose', label: 'Rose', primary: '#FF4081', bg: '#0d0305', desc: 'Hot pink' }
+]
 
 function SectionCard({ title, icon: Icon, iconColor = 'text-primary', children, className }) {
     return (
         <div className={cn('rounded-2xl border border-border bg-card/60 overflow-hidden', className)}>
             <div className='flex items-center gap-3 px-5 py-4 border-b border-border bg-secondary/20'>
-                <div className={cn('h-7 w-7 rounded-lg flex items-center justify-center', iconColor.replace('text-', 'bg-') + '/10', 'border', iconColor.replace('text-', 'border-') + '/20')}>
+                <div className={cn('h-7 w-7 rounded-lg flex items-center justify-center border', iconColor.replace('text-', 'bg-') + '/10', iconColor.replace('text-', 'border-') + '/20')}>
                     <Icon size={14} className={iconColor} />
                 </div>
                 <h3 className='font-display text-sm font-semibold text-foreground'>{title}</h3>
@@ -44,22 +54,45 @@ function Toggle({ enabled, onChange, label, description }) {
     )
 }
 
+function NotifRow({ icon: Icon, iconColor, label, desc, priority, enabled, onChange }) {
+    const { play } = useSound()
+    return (
+        <div className='flex items-center gap-4 py-3 border-b border-border/40 last:border-0'>
+            <div className={cn('h-9 w-9 rounded-xl flex items-center justify-center shrink-0', iconColor.replace('text-', 'bg-') + '/10')}>
+                <Icon size={15} className={iconColor} />
+            </div>
+            <div className='flex-1 min-w-0'>
+                <div className='flex items-center gap-2'>
+                    <span className='text-sm font-medium text-foreground'>{label}</span>
+                    {priority === 'high' && <Badge variant='destructive' className='text-[9px] px-1.5 h-4'>High</Badge>}
+                    {priority === 'low' && <Badge variant='secondary' className='text-[9px] px-1.5 h-4'>Low</Badge>}
+                </div>
+                <p className='text-xs text-muted-foreground mt-0.5'>{desc}</p>
+            </div>
+            <button onClick={() => { onChange(!enabled); play('click') }}
+                className={cn('relative h-5 w-9 rounded-full shrink-0 transition-colors duration-200', enabled ? 'bg-primary' : 'bg-secondary border border-border')}>
+                <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200', enabled ? 'left-[18px]' : 'left-0.5')} />
+            </button>
+        </div>
+    )
+}
+
 export default function Account() {
-    const { soundEnabled, setSoundEnabled, canvasMusicEnabled, setCanvasMusicEnabled } = useUIStore()
+    const { soundEnabled, setSoundEnabled, canvasMusicEnabled, setCanvasMusicEnabled, colorTheme, setColorTheme, fontSize, setFontSize } = useUIStore()
     const { play } = useSound()
 
     const [activeTab, setActiveTab] = useState('profile')
-    const [profile, setProfile] = useState({ name: 'Hemant', email: 'akshaybendadi@gmail.com', company: 'Haxon Labs', role: 'Owner' })
+    const [profile, setProfile] = useState({ name: 'Hemant', email: 'hemant.dev.upwork@gmail.com', company: 'Haxon Labs', role: 'Owner' })
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(profile)
     const [showPw, setShowPw] = useState(false)
     const [notifications, setNotifications] = useState({
-        failures: true, evaluations: true, rateLimit: false, weeklyReport: true, newModels: false
+        failures: true, evaluations: true, rateLimit: false, weeklyReport: true, newModels: false, security: true
     })
 
     const tabs = [
         { id: 'profile', label: 'Profile', icon: IconUser },
-        { id: 'appearance', label: 'Preferences', icon: IconPalette },
+        { id: 'preferences', label: 'Preferences', icon: IconSettings2 },
         { id: 'billing', label: 'Billing', icon: IconCreditCard },
         { id: 'notifications', label: 'Notifications', icon: IconBell },
         { id: 'security', label: 'Security', icon: IconShield }
@@ -139,33 +172,74 @@ export default function Account() {
             )}
 
             {/* Preferences */}
-            {activeTab === 'appearance' && (
+            {activeTab === 'preferences' && (
                 <div className='space-y-4 animate-slide-up'>
+                    {/* Sound & Audio */}
                     <SectionCard title='Sound & Audio' icon={IconVolume} iconColor='text-cyan'>
                         <Toggle enabled={soundEnabled} onChange={setSoundEnabled}
                             label='Sound Effects'
-                            description='Play subtle audio feedback on clicks, actions, and notifications' />
+                            description='Subtle audio feedback on clicks, actions, and confirmations' />
                         <Toggle enabled={canvasMusicEnabled} onChange={setCanvasMusicEnabled}
                             label='Canvas Ambient Music'
-                            description='Play soft ambient tones while working in the canvas flow editor' />
-                        <div className='mt-4 pt-3 border-t border-border/50'>
-                            <p className='text-xs text-muted-foreground flex items-center gap-2'>
-                                <IconVolume size={12} className='text-primary' />
-                                Sounds use your system volume. Adjust in your OS settings.
-                            </p>
+                            description='Soft drone tones while working in the flow canvas editor' />
+                    </SectionCard>
+
+                    {/* Color Themes */}
+                    <SectionCard title='Color Theme' icon={IconDroplet} iconColor='text-purple'>
+                        <p className='text-xs text-muted-foreground mb-4'>Choose an accent palette. Changes apply immediately across the entire app.</p>
+                        <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
+                            {COLOR_THEMES.map((t) => (
+                                <button key={t.id} onClick={() => { setColorTheme(t.id); play('click') }}
+                                    className={cn('relative flex items-center gap-3 rounded-xl border p-3 transition-all text-left',
+                                        colorTheme === t.id ? 'border-primary bg-primary/8 shadow-sm' : 'border-border hover:border-primary/40 hover:bg-secondary/50')}>
+                                    <div className='h-8 w-8 rounded-full shrink-0 border-2 border-white/10' style={{ background: `radial-gradient(circle at 40% 40%, ${t.primary}, ${t.bg})` }} />
+                                    <div className='min-w-0'>
+                                        <div className='text-xs font-semibold text-foreground leading-tight'>{t.label}</div>
+                                        <div className='text-[10px] text-muted-foreground'>{t.desc}</div>
+                                    </div>
+                                    {colorTheme === t.id && (
+                                        <div className='absolute top-2 right-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center'>
+                                            <IconCheck size={9} className='text-white' />
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
                         </div>
                     </SectionCard>
 
-                    <SectionCard title='Interface' icon={IconPalette} iconColor='text-purple'>
+                    {/* Typography */}
+                    <SectionCard title='Typography & Display' icon={IconTypography} iconColor='text-warning'>
+                        <div className='mb-4'>
+                            <p className='text-xs text-muted-foreground mb-3'>Interface font size — affects all text outside the canvas.</p>
+                            <div className='flex gap-2'>
+                                {[{ id: 'sm', label: 'Small', size: 'text-xs' }, { id: 'md', label: 'Default', size: 'text-sm' }, { id: 'lg', label: 'Large', size: 'text-base' }].map((f) => (
+                                    <button key={f.id} onClick={() => { setFontSize(f.id); play('click') }}
+                                        className={cn('flex-1 rounded-lg border px-3 py-2.5 transition-all text-center',
+                                            fontSize === f.id ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground')}>
+                                        <div className={cn('font-semibold leading-none mb-1', f.size)}>{f.label}</div>
+                                        <div className='text-[10px] opacity-60'>Aa</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className='pt-3 border-t border-border/50'>
+                            <Toggle enabled={true} onChange={() => toast.info('Coming soon')}
+                                label='Reduce motion'
+                                description='Minimize transitions and animations throughout the interface' />
+                        </div>
+                    </SectionCard>
+
+                    {/* Interface */}
+                    <SectionCard title='Interface' icon={IconPalette} iconColor='text-primary'>
                         <Toggle enabled={true} onChange={() => toast.info('Theme switching coming soon')}
                             label='Dark Mode'
-                            description='The app uses a dark theme optimized for extended use' />
+                            description='The interface uses a dark theme optimized for extended use' />
                         <Toggle enabled={false} onChange={() => toast.info('Coming soon')}
-                            label='Compact View'
+                            label='Compact Density'
                             description='Reduce padding and spacing for higher information density' />
                         <Toggle enabled={true} onChange={() => toast.info('Coming soon')}
-                            label='Animations'
-                            description='Enable UI transitions and micro-animations' />
+                            label='Sidebar icons only'
+                            description='Collapse sidebar to icons-only mode by default on load' />
                     </SectionCard>
                 </div>
             )}
@@ -221,17 +295,34 @@ export default function Account() {
             {/* Notifications */}
             {activeTab === 'notifications' && (
                 <div className='space-y-4 animate-slide-up'>
-                    <SectionCard title='Email Notifications' icon={IconBell} iconColor='text-warning'>
-                        <Toggle enabled={notifications.failures} onChange={(v) => setNotifications((p) => ({ ...p, failures: v }))}
-                            label='Flow execution failures' description='Alert when a deployed flow returns an error' />
-                        <Toggle enabled={notifications.evaluations} onChange={(v) => setNotifications((p) => ({ ...p, evaluations: v }))}
-                            label='Evaluation completed' description='Notification when an eval run finishes' />
-                        <Toggle enabled={notifications.rateLimit} onChange={(v) => setNotifications((p) => ({ ...p, rateLimit: v }))}
-                            label='Rate limit warnings' description='Alert when approaching API rate limits' />
-                        <Toggle enabled={notifications.weeklyReport} onChange={(v) => setNotifications((p) => ({ ...p, weeklyReport: v }))}
-                            label='Weekly usage report' description='Summary of usage and costs every Monday' />
-                        <Toggle enabled={notifications.newModels} onChange={(v) => setNotifications((p) => ({ ...p, newModels: v }))}
-                            label='New model releases' description='When new LLM models become available' />
+                    <SectionCard title='Notification Preferences' icon={IconBell} iconColor='text-warning'>
+                        <p className='text-xs text-muted-foreground mb-4'>Control which events trigger email and in-app notifications.</p>
+
+                        <div className='mb-2'>
+                            <p className='text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1 px-1'>Operations</p>
+                            <NotifRow icon={IconAlertCircle} iconColor='text-destructive' label='Flow execution failures' priority='high'
+                                desc='Immediate alert when a deployed flow returns an error or crashes'
+                                enabled={notifications.failures} onChange={(v) => setNotifications((p) => ({ ...p, failures: v }))} />
+                            <NotifRow icon={IconBolt} iconColor='text-warning' label='Rate limit warnings' priority='high'
+                                desc='Alert when you approach API rate limits (80% threshold)'
+                                enabled={notifications.rateLimit} onChange={(v) => setNotifications((p) => ({ ...p, rateLimit: v }))} />
+                            <NotifRow icon={IconShield} iconColor='text-success' label='Security alerts' priority='high'
+                                desc='Login from new device, API key usage anomalies'
+                                enabled={notifications.security} onChange={(v) => setNotifications((p) => ({ ...p, security: v }))} />
+                        </div>
+
+                        <div className='mb-2 mt-5'>
+                            <p className='text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1 px-1'>Insights</p>
+                            <NotifRow icon={IconChartBar} iconColor='text-cyan' label='Evaluation completed' priority='low'
+                                desc='Notification when an eval run finishes with results summary'
+                                enabled={notifications.evaluations} onChange={(v) => setNotifications((p) => ({ ...p, evaluations: v }))} />
+                            <NotifRow icon={IconMailCheck} iconColor='text-primary' label='Weekly usage report' priority='low'
+                                desc='Monday digest: token usage, cost breakdown, top flows'
+                                enabled={notifications.weeklyReport} onChange={(v) => setNotifications((p) => ({ ...p, weeklyReport: v }))} />
+                            <NotifRow icon={IconBrain} iconColor='text-purple' label='New model releases' priority='low'
+                                desc='When new LLMs or integrations become available in the hub'
+                                enabled={notifications.newModels} onChange={(v) => setNotifications((p) => ({ ...p, newModels: v }))} />
+                        </div>
                     </SectionCard>
                 </div>
             )}

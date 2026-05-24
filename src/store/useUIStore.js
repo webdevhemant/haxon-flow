@@ -14,7 +14,15 @@ export const useUIStore = create(
 
             canvasMusicEnabled: false,
             setCanvasMusicEnabled: (val) => set({ canvasMusicEnabled: val }),
-            toggleCanvasMusic: () => set((s) => ({ canvasMusicEnabled: !s.canvasMusicEnabled }))
+            toggleCanvasMusic: () => set((s) => ({ canvasMusicEnabled: !s.canvasMusicEnabled })),
+
+            // color theme: 'default' | 'midnight' | 'ocean' | 'forest' | 'sunset' | 'rose'
+            colorTheme: 'default',
+            setColorTheme: (val) => set({ colorTheme: val }),
+
+            // font size: 'sm' | 'md' | 'lg'
+            fontSize: 'md',
+            setFontSize: (val) => set({ fontSize: val })
         }),
         { name: 'haxon-ui' }
     )

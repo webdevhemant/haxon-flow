@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { useFlowStore } from '@/store/useFlowStore'
+import { useSound } from '@/hooks/useSound'
 import { toast } from 'sonner'
 import {
     IconPlus,
@@ -24,7 +25,12 @@ import {
     IconFilter,
     IconGridDots,
     IconList,
-    IconExternalLink
+    IconExternalLink,
+    IconLayoutRows,
+    IconCheck,
+    IconX,
+    IconCalendar,
+    IconChevronDown
 } from '@tabler/icons-react'
 
 function CreateFlowDialog({ open, onClose, onSave }) {
@@ -78,30 +84,109 @@ function CreateFlowDialog({ open, onClose, onSave }) {
     )
 }
 
+function FilterPanel({ filters, setFilters, onClose }) {
+    return (
+        <div className='absolute top-full left-0 mt-1 z-50 w-72 rounded-xl border border-border bg-card shadow-xl p-4 animate-slide-up'>
+            <div className='flex items-center justify-between mb-4'>
+                <span className='text-xs font-semibold text-foreground'>Filters</span>
+                <button onClick={onClose} className='text-muted-foreground hover:text-foreground transition-colors'><IconX size={13} /></button>
+            </div>
+
+            {/* Status */}
+            <div className='mb-4'>
+                <p className='text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-2'>Status</p>
+                <div className='flex gap-2'>
+                    {['all', 'live', 'draft'].map((s) => (
+                        <button key={s} onClick={() => setFilters((f) => ({ ...f, status: s }))}
+                            className={cn('flex-1 rounded-lg border py-1.5 text-xs font-medium transition-all capitalize',
+                                filters.status === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/30')}>
+                            {s === 'all' ? 'All' : s === 'live' ? '⬤ Live' : '○ Draft'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Date */}
+            <div className='mb-4'>
+                <p className='text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-2'>Last Updated</p>
+                <div className='grid grid-cols-2 gap-2'>
+                    {[{ id: 'all', label: 'All time' }, { id: '7d', label: 'Last 7 days' }, { id: '30d', label: 'Last 30 days' }, { id: '90d', label: 'Last 90 days' }].map((d) => (
+                        <button key={d.id} onClick={() => setFilters((f) => ({ ...f, date: d.id }))}
+                            className={cn('rounded-lg border py-1.5 px-2 text-xs transition-all text-left',
+                                filters.date === d.id ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/30')}>
+                            {d.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+                <p className='text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-2'>Node Count</p>
+                <div className='flex gap-2'>
+                    {[{ id: 'all', label: 'Any' }, { id: 'small', label: '< 5' }, { id: 'medium', label: '5–15' }, { id: 'large', label: '15+' }].map((n) => (
+                        <button key={n.id} onClick={() => setFilters((f) => ({ ...f, size: n.id }))}
+                            className={cn('flex-1 rounded-lg border py-1.5 text-xs font-medium transition-all',
+                                filters.size === n.id ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:border-primary/30')}>
+                            {n.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <button onClick={() => setFilters({ status: 'all', date: 'all', size: 'all' })}
+                className='mt-4 w-full text-xs text-muted-foreground hover:text-foreground transition-colors text-center'>
+                Reset all filters
+            </button>
+        </div>
+    )
+}
+
 export default function Chatflows() {
     const navigate = useNavigate()
+    const { play } = useSound()
     const [search, setSearch] = useState('')
     const [view, setView] = useState('grid')
     const [showCreate, setShowCreate] = useState(false)
+    const [showFilter, setShowFilter] = useState(false)
+    const [filters, setFilters] = useState({ status: 'all', date: 'all', size: 'all' })
+    const filterRef = useRef(null)
     const { chatflows, addChatflow, deleteChatflow, updateChatflow } = useFlowStore()
 
-    const filtered = chatflows.filter(
-        (f) => f.name.toLowerCase().includes(search.toLowerCase()) || (f.description || '').toLowerCase().includes(search.toLowerCase())
-    )
+    useEffect(() => {
+        const handler = (e) => { if (filterRef.current && !filterRef.current.contains(e.target)) setShowFilter(false) }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [])
+
+    const activeFilterCount = Object.values(filters).filter((v) => v !== 'all').length
+
+    const filtered = chatflows.filter((f) => {
+        const matchSearch = f.name.toLowerCase().includes(search.toLowerCase()) || (f.description || '').toLowerCase().includes(search.toLowerCase())
+        const matchStatus = filters.status === 'all' || (filters.status === 'live' ? f.deployed : !f.deployed)
+        const matchSize = filters.size === 'all'
+            || (filters.size === 'small' && (f.nodeCount || 0) < 5)
+            || (filters.size === 'medium' && (f.nodeCount || 0) >= 5 && (f.nodeCount || 0) <= 15)
+            || (filters.size === 'large' && (f.nodeCount || 0) > 15)
+        return matchSearch && matchStatus && matchSize
+    })
 
     const handleCreate = (data) => {
         addChatflow(data)
         setShowCreate(false)
+        play('success')
         toast.success('Flow created')
     }
 
     const handleDelete = (id) => {
         deleteChatflow(id)
+        play('error')
         toast.success('Flow deleted')
     }
 
     const handleDuplicate = (flow) => {
         addChatflow({ ...flow, name: flow.name + ' (Copy)', deployed: false })
+        play('click')
         toast.success('Flow duplicated')
     }
 
@@ -121,32 +206,30 @@ export default function Chatflows() {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <Button variant='ghost' size='icon-sm' className='text-muted-foreground'>
-                        <IconFilter size={14} />
-                    </Button>
+                    <div className='relative' ref={filterRef}>
+                        <Button variant='ghost' size='sm' className={cn('gap-1.5 h-8 text-xs', showFilter && 'bg-secondary text-foreground', activeFilterCount > 0 && 'text-primary')}
+                            onClick={() => { setShowFilter(!showFilter); play('click') }}>
+                            <IconFilter size={13} />
+                            Filter
+                            {activeFilterCount > 0 && (
+                                <span className='h-4 w-4 rounded-full bg-primary text-white text-[9px] flex items-center justify-center font-bold'>{activeFilterCount}</span>
+                            )}
+                            <IconChevronDown size={11} className={cn('transition-transform', showFilter && 'rotate-180')} />
+                        </Button>
+                        {showFilter && <FilterPanel filters={filters} setFilters={setFilters} onClose={() => setShowFilter(false)} />}
+                    </div>
                 </div>
                 <div className='flex items-center gap-2'>
                     <div className='flex rounded-lg border border-border p-0.5'>
-                        <button
-                            onClick={() => setView('grid')}
-                            className={cn(
-                                'rounded-md p-1.5 transition-colors',
-                                view === 'grid' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            <IconGridDots size={14} />
-                        </button>
-                        <button
-                            onClick={() => setView('list')}
-                            className={cn(
-                                'rounded-md p-1.5 transition-colors',
-                                view === 'list' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            <IconList size={14} />
-                        </button>
+                        {[{ id: 'grid', Icon: IconGridDots, title: 'Grid' }, { id: 'compact', Icon: IconLayoutRows, title: 'Compact' }, { id: 'list', Icon: IconList, title: 'Table' }].map(({ id, Icon, title }) => (
+                            <button key={id} title={title}
+                                onClick={() => { setView(id); play('click') }}
+                                className={cn('rounded-md p-1.5 transition-colors', view === id ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+                                <Icon size={14} />
+                            </button>
+                        ))}
                     </div>
-                    <Button variant='gradient' size='sm' onClick={() => setShowCreate(true)}>
+                    <Button variant='gradient' size='sm' onClick={() => { setShowCreate(true); play('click') }}>
                         <IconPlus size={14} /> New Flow
                     </Button>
                 </div>
@@ -181,7 +264,7 @@ export default function Chatflows() {
             </div>
 
             {/* Grid */}
-            {view === 'grid' ? (
+            {view === 'grid' && (
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
                     {filtered.map((flow, i) => (
                         <div
@@ -283,7 +366,35 @@ export default function Chatflows() {
                         </div>
                     ))}
                 </div>
-            ) : (
+            )}
+
+            {/* Compact view */}
+            {view === 'compact' && (
+                <div className='space-y-1.5'>
+                    {filtered.map((flow, i) => (
+                        <div key={flow.id} onClick={() => navigate(`/canvas/${flow.id}`)}
+                            className={cn('flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border bg-card/40 hover:border-primary/30 hover:bg-card/80 transition-all cursor-pointer group animate-slide-up', `stagger-${Math.min(i + 1, 8)}`)}>
+                            <div className='h-6 w-6 rounded-md flex items-center justify-center shrink-0' style={{ background: flow.color + '18' }}>
+                                <IconHierarchy2 size={11} style={{ color: flow.color }} />
+                            </div>
+                            <div className='flex-1 min-w-0'>
+                                <span className='text-sm font-medium text-foreground truncate'>{flow.name}</span>
+                            </div>
+                            <Badge variant={flow.deployed ? 'success' : 'secondary'} className='text-[9px] shrink-0'>{flow.deployed ? 'Live' : 'Draft'}</Badge>
+                            <span className='text-[10px] font-mono text-muted-foreground shrink-0 hidden sm:inline'>{flow.nodeCount || 0}n</span>
+                            <span className='text-[10px] font-mono text-muted-foreground shrink-0 hidden md:inline'>{(flow.executionCount || 0).toLocaleString()} runs</span>
+                            <span className='text-[10px] text-muted-foreground shrink-0 hidden lg:inline'>{formatRelativeTime(flow.updatedDate)}</span>
+                            <Button variant='ghost' size='icon-sm' className='opacity-0 group-hover:opacity-100 h-6 w-6 shrink-0 transition-opacity'
+                                onClick={(e) => { e.stopPropagation(); handleDuplicate(flow) }}>
+                                <IconCopy size={11} />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Table/list view */}
+            {view === 'list' && (
                 <div className='rounded-xl border border-border overflow-hidden'>
                     <table className='w-full text-sm'>
                         <thead>

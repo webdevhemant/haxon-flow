@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -70,9 +70,10 @@
     --color-sidebar: hsl(228 55% 3%);
 
     --font-display: 'Syne', sans-serif;
-    --font-serif: 'Instrument Serif', serif;
+    --font-landing: 'Bricolage Grotesque', sans-serif;
     --font-body: 'Manrope', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-scale: 1;
 
     --radius-sm: calc(var(--radius) - 2px);
     --radius-md: var(--radius);
@@ -230,7 +231,7 @@
 /* ── Utilities ── */
 @layer utilities {
     .font-display { font-family: 'Syne', sans-serif; }
-    .font-serif { font-family: 'Instrument Serif', serif; }
+    .font-landing { font-family: 'Bricolage Grotesque', sans-serif; }
     .font-body { font-family: 'Manrope', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
 
@@ -375,8 +376,50 @@
     .scrollbar-hidden::-webkit-scrollbar { display: none; }
 
     /* Landing-specific */
-    .landing-serif { font-family: 'Instrument Serif', serif; }
+    .landing-display { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; }
     .text-balance { text-wrap: balance; }
+
+    /* Font scale */
+    [data-font-size='sm'] { font-size: 0.9rem; }
+    [data-font-size='md'] { font-size: 1rem; }
+    [data-font-size='lg'] { font-size: 1.12rem; }
+
+    /* Color themes */
+    [data-theme='midnight'] {
+        --background: 240 60% 1.5%;
+        --card: 240 42% 4%;
+        --secondary: 240 28% 8%;
+        --border: 240 28% 8%;
+        --primary: 210 100% 60%;
+    }
+    [data-theme='ocean'] {
+        --background: 210 70% 2.5%;
+        --card: 210 50% 5%;
+        --secondary: 210 35% 9%;
+        --border: 210 35% 10%;
+        --primary: 186 100% 52%;
+    }
+    [data-theme='forest'] {
+        --background: 160 50% 2%;
+        --card: 160 38% 4.5%;
+        --secondary: 160 25% 8%;
+        --border: 160 25% 9%;
+        --primary: 142 90% 48%;
+    }
+    [data-theme='sunset'] {
+        --background: 20 50% 2%;
+        --card: 20 38% 5%;
+        --secondary: 20 25% 9%;
+        --border: 20 25% 10%;
+        --primary: 30 100% 58%;
+    }
+    [data-theme='rose'] {
+        --background: 340 45% 2%;
+        --card: 340 35% 5%;
+        --secondary: 340 22% 9%;
+        --border: 340 22% 10%;
+        --primary: 340 90% 58%;
+    }
 
     .magnetic-btn {
         transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
