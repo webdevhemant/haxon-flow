@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useSound } from '@/hooks/useSound'
+import { useUIStore } from '@/store/useUIStore'
 import {
-    ReactFlow, Background, Controls, MiniMap, Panel,
-    useReactFlow, ReactFlowProvider, BackgroundVariant, Handle, Position
+    ReactFlow,
+    Background,
+    Controls,
+    MiniMap,
+    Panel,
+    useReactFlow,
+    ReactFlowProvider,
+    BackgroundVariant,
+    Handle,
+    Position
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { NODE_DEFS, CATEGORY_COLORS } from './nodeDefs'
@@ -14,8 +24,14 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
-    IconArrowLeft, IconDeviceFloppy, IconPlayerPlay, IconLayoutGrid,
-    IconSearch, IconX, IconChevronDown, IconChevronUp
+    IconArrowLeft,
+    IconDeviceFloppy,
+    IconPlayerPlay,
+    IconLayoutGrid,
+    IconSearch,
+    IconX,
+    IconChevronDown,
+    IconChevronUp
 } from '@tabler/icons-react'
 
 // ─── FlowNode ─────────────────────────────────────────────────────────────────
@@ -32,11 +48,15 @@ function FlowNode({ id, data, selected }) {
     const outputCount = def.outputAnchors.length
 
     return (
-        <div className={cn(
-            'relative rounded-xl border bg-card shadow-md transition-all duration-150 group select-none',
-            'min-w-[220px] max-w-[260px]',
-            selected ? 'border-primary ring-2 ring-primary/25 shadow-primary/15' : 'border-border hover:border-primary/40 hover:shadow-lg'
-        )}>
+        <div
+            className={cn(
+                'relative rounded-xl border bg-card shadow-md transition-all duration-150 group select-none',
+                'min-w-[220px] max-w-[260px]',
+                selected
+                    ? 'border-primary ring-2 ring-primary/25 shadow-primary/15'
+                    : 'border-border hover:border-primary/40 hover:shadow-lg'
+            )}
+        >
             {/* Input handles */}
             {def.inputAnchors.map((anchor, idx) => {
                 const pct = inputCount === 1 ? 50 : ((idx + 1) / (inputCount + 1)) * 100
@@ -77,7 +97,10 @@ function FlowNode({ id, data, selected }) {
                     </div>
                     <span className='font-display text-xs font-semibold text-foreground flex-1 truncate'>{data.label}</span>
                     <button
-                        onMouseDown={(e) => { e.stopPropagation(); deleteNode(id) }}
+                        onMouseDown={(e) => {
+                            e.stopPropagation()
+                            deleteNode(id)
+                        }}
                         className='opacity-0 group-hover:opacity-100 rounded p-0.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all nodrag shrink-0'
                     >
                         <IconX size={11} />
@@ -121,10 +144,12 @@ function NodePalette() {
     const allEntries = Object.entries(NODE_DEFS)
 
     const filtered = search
-        ? allEntries.filter(([, d]) =>
-            d.label.toLowerCase().includes(search.toLowerCase()) ||
-            d.category.toLowerCase().includes(search.toLowerCase()) ||
-            d.description.toLowerCase().includes(search.toLowerCase()))
+        ? allEntries.filter(
+              ([, d]) =>
+                  d.label.toLowerCase().includes(search.toLowerCase()) ||
+                  d.category.toLowerCase().includes(search.toLowerCase()) ||
+                  d.description.toLowerCase().includes(search.toLowerCase())
+          )
         : allEntries
 
     const onDragStart = (e, type) => {
@@ -140,7 +165,12 @@ function NodePalette() {
                 <p className='text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2'>Add Nodes</p>
                 <div className='relative'>
                     <IconSearch size={12} className='absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground' />
-                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder='Search nodes…' className='h-7 pl-6 text-xs' />
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder='Search nodes…'
+                        className='h-7 pl-6 text-xs'
+                    />
                 </div>
             </div>
 
@@ -150,9 +180,7 @@ function NodePalette() {
                         {filtered.map(([type, def]) => (
                             <PaletteItem key={type} type={type} def={def} onDragStart={onDragStart} />
                         ))}
-                        {filtered.length === 0 && (
-                            <p className='text-center text-[10px] text-muted-foreground py-4'>No nodes found</p>
-                        )}
+                        {filtered.length === 0 && <p className='text-center text-[10px] text-muted-foreground py-4'>No nodes found</p>}
                     </div>
                 ) : (
                     categories.map((cat) => {
@@ -165,12 +193,19 @@ function NodePalette() {
                                     onClick={() => toggleCategory(cat)}
                                     className='w-full flex items-center justify-between px-3 py-1.5 hover:bg-secondary/50 transition-colors'
                                 >
-                                    <span className='text-[10px] font-semibold uppercase tracking-wider' style={{ color: CATEGORY_COLORS[cat] }}>
+                                    <span
+                                        className='text-[10px] font-semibold uppercase tracking-wider'
+                                        style={{ color: CATEGORY_COLORS[cat] }}
+                                    >
                                         {cat}
                                     </span>
                                     <div className='flex items-center gap-1'>
                                         <span className='text-[9px] text-muted-foreground font-mono'>{items.length}</span>
-                                        {isCollapsed ? <IconChevronDown size={10} className='text-muted-foreground' /> : <IconChevronUp size={10} className='text-muted-foreground' />}
+                                        {isCollapsed ? (
+                                            <IconChevronDown size={10} className='text-muted-foreground' />
+                                        ) : (
+                                            <IconChevronUp size={10} className='text-muted-foreground' />
+                                        )}
                                     </div>
                                 </button>
                                 {!isCollapsed && (
@@ -203,7 +238,8 @@ function PaletteItem({ type, def, onDragStart }) {
         const pos = reactflow.screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
         const nodeId = `${type}-${Date.now()}`
         addNode({
-            id: nodeId, type: 'flowNode',
+            id: nodeId,
+            type: 'flowNode',
             position: { x: pos.x - 110 + Math.random() * 60 - 30, y: pos.y - 60 + Math.random() * 60 - 30 },
             data: { nodeType: type, label: def.label, params: Object.fromEntries(def.inputParams.map((p) => [p.name, p.default ?? ''])) }
         })
@@ -239,11 +275,19 @@ function ParamField({ param, value, onChange }) {
         return (
             <div className='space-y-1'>
                 <label className='block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                    {label}{optional && <span className='ml-1 text-muted-foreground/50 normal-case font-normal'>(optional)</span>}
+                    {label}
+                    {optional && <span className='ml-1 text-muted-foreground/50 normal-case font-normal'>(optional)</span>}
                 </label>
-                <select value={displayVal} onChange={(e) => onChange(name, e.target.value)}
-                    className='w-full h-7 text-xs rounded-md border border-border bg-background px-2 text-foreground'>
-                    {(options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                <select
+                    value={displayVal}
+                    onChange={(e) => onChange(name, e.target.value)}
+                    className='w-full h-7 text-xs rounded-md border border-border bg-background px-2 text-foreground'
+                >
+                    {(options || []).map((o) => (
+                        <option key={o} value={o}>
+                            {o}
+                        </option>
+                    ))}
                 </select>
             </div>
         )
@@ -254,9 +298,17 @@ function ParamField({ param, value, onChange }) {
                 <label className='text-[10px] font-semibold text-muted-foreground uppercase tracking-wider'>{label}</label>
                 <button
                     onClick={() => onChange(name, !displayVal)}
-                    className={cn('h-5 w-9 rounded-full transition-colors', displayVal ? 'bg-primary' : 'bg-secondary border border-border')}
+                    className={cn(
+                        'h-5 w-9 rounded-full transition-colors',
+                        displayVal ? 'bg-primary' : 'bg-secondary border border-border'
+                    )}
                 >
-                    <div className={cn('h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5', displayVal ? 'translate-x-4' : 'translate-x-0')} />
+                    <div
+                        className={cn(
+                            'h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5',
+                            displayVal ? 'translate-x-4' : 'translate-x-0'
+                        )}
+                    />
                 </button>
             </div>
         )
@@ -270,8 +322,10 @@ function ParamField({ param, value, onChange }) {
                     onChange={(e) => onChange(name, e.target.value)}
                     rows={rows || (type === 'code' ? 8 : 4)}
                     placeholder={placeholder}
-                    className={cn('w-full rounded-md border border-border px-2 py-1.5 text-foreground resize-y leading-relaxed',
-                        type === 'code' ? 'text-[10px] font-mono bg-secondary/40' : 'text-xs bg-background')}
+                    className={cn(
+                        'w-full rounded-md border border-border px-2 py-1.5 text-foreground resize-y leading-relaxed',
+                        type === 'code' ? 'text-[10px] font-mono bg-secondary/40' : 'text-xs bg-background'
+                    )}
                 />
             </div>
         )
@@ -294,7 +348,11 @@ function ParamField({ param, value, onChange }) {
         return (
             <div className='space-y-1'>
                 <label className='block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider'>{label}</label>
-                <input type='file' accept={param.fileType} className='w-full text-[10px] text-foreground file:text-[10px] file:mr-2 file:rounded file:border-0 file:bg-secondary file:text-foreground file:px-2 file:py-1' />
+                <input
+                    type='file'
+                    accept={param.fileType}
+                    className='w-full text-[10px] text-foreground file:text-[10px] file:mr-2 file:rounded file:border-0 file:bg-secondary file:text-foreground file:px-2 file:py-1'
+                />
             </div>
         )
     }
@@ -302,7 +360,8 @@ function ParamField({ param, value, onChange }) {
     return (
         <div className='space-y-1'>
             <label className='block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                {label}{optional && <span className='ml-1 text-muted-foreground/50 normal-case font-normal'>(optional)</span>}
+                {label}
+                {optional && <span className='ml-1 text-muted-foreground/50 normal-case font-normal'>(optional)</span>}
             </label>
             <Input
                 type={type === 'password' ? 'password' : type === 'number' ? 'number' : 'text'}
@@ -336,9 +395,14 @@ function NodeInspector({ node, onClose }) {
                 </div>
                 <div className='flex-1 min-w-0'>
                     <p className='text-xs font-semibold text-foreground truncate'>{node.data.label}</p>
-                    <p className='text-[10px]' style={{ color }}>{def.category}</p>
+                    <p className='text-[10px]' style={{ color }}>
+                        {def.category}
+                    </p>
                 </div>
-                <button onClick={onClose} className='rounded p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0'>
+                <button
+                    onClick={onClose}
+                    className='rounded p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0'
+                >
                     <IconX size={13} />
                 </button>
             </div>
@@ -347,7 +411,11 @@ function NodeInspector({ node, onClose }) {
                 {/* Label */}
                 <div className='space-y-1'>
                     <label className='block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider'>Label</label>
-                    <Input value={node.data.label} onChange={(e) => updateNodeData(node.id, { label: e.target.value })} className='h-7 text-xs' />
+                    <Input
+                        value={node.data.label}
+                        onChange={(e) => updateNodeData(node.id, { label: e.target.value })}
+                        className='h-7 text-xs'
+                    />
                 </div>
 
                 {/* Description */}
@@ -361,7 +429,11 @@ function NodeInspector({ node, onClose }) {
                             <div key={a.id} className='flex items-center gap-1.5'>
                                 <div className='h-1.5 w-1.5 rounded-full' style={{ background: color }} />
                                 <span className='text-[10px] text-foreground'>{a.label}</span>
-                                {a.optional && <Badge variant='secondary' className='text-[8px] px-1 py-0'>optional</Badge>}
+                                {a.optional && (
+                                    <Badge variant='secondary' className='text-[8px] px-1 py-0'>
+                                        optional
+                                    </Badge>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -400,8 +472,49 @@ function CanvasInner() {
     const navigate = useNavigate()
     const reactflow = useReactFlow()
     const wrapperRef = useRef(null)
+    const { play } = useSound()
+    const { canvasMusicEnabled } = useUIStore()
+    const musicRef = useRef(null)
 
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, setSelectedNode, selectedNode, setFlow, flowName, setFlowName, isDirty, markSaved } = useCanvasStore()
+    // Ambient music: drone oscillators while canvasMusicEnabled is true
+    useEffect(() => {
+        if (!canvasMusicEnabled) {
+            if (musicRef.current) { musicRef.current.stop(); musicRef.current = null }
+            return
+        }
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)()
+            const master = ctx.createGain(); master.gain.setValueAtTime(0.06, ctx.currentTime); master.connect(ctx.destination)
+            const drones = [55, 82.4, 110, 164.8]
+            const oscs = drones.map((freq, i) => {
+                const osc = ctx.createOscillator(); const g = ctx.createGain()
+                osc.type = i % 2 === 0 ? 'sine' : 'triangle'
+                osc.frequency.value = freq
+                g.gain.setValueAtTime(0, ctx.currentTime)
+                g.gain.linearRampToValueAtTime(1 / drones.length, ctx.currentTime + 2)
+                osc.connect(g); g.connect(master); osc.start()
+                return { osc, g }
+            })
+            musicRef.current = { stop: () => { oscs.forEach(({ osc, g }) => { g.gain.linearRampToValueAtTime(0, ctx.currentTime + 1); setTimeout(() => { try { osc.stop() } catch {} }, 1200) }); setTimeout(() => { try { ctx.close() } catch {} }, 1500) } }
+        } catch {}
+        return () => { if (musicRef.current) { musicRef.current.stop(); musicRef.current = null } }
+    }, [canvasMusicEnabled])
+
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect,
+        addNode,
+        setSelectedNode,
+        selectedNode,
+        setFlow,
+        flowName,
+        setFlowName,
+        isDirty,
+        markSaved
+    } = useCanvasStore()
     const { chatflows, agentflows } = useFlowStore()
     const [showPalette, setShowPalette] = useState(true)
 
@@ -415,28 +528,54 @@ function CanvasInner() {
     }, [id])
 
     // Always read latest node data from store for inspector
-    const inspectorNode = selectedNode ? (nodes.find((n) => n.id === selectedNode.id) || null) : null
+    const inspectorNode = selectedNode ? nodes.find((n) => n.id === selectedNode.id) || null : null
 
-    const onDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }, [])
-
-    const onDrop = useCallback((e) => {
+    const onDragOver = useCallback((e) => {
         e.preventDefault()
-        const type = e.dataTransfer.getData('application/reactflow-nodetype')
-        if (!type || !NODE_DEFS[type]) return
-        const def = NODE_DEFS[type]
-        const bounds = wrapperRef.current?.getBoundingClientRect()
-        const position = reactflow.screenToFlowPosition({ x: e.clientX - (bounds?.left || 0), y: e.clientY - (bounds?.top || 0) })
-        const nodeId = `${type}-${Date.now()}`
-        addNode({
-            id: nodeId, type: 'flowNode', position,
-            data: { nodeType: type, label: def.label, params: Object.fromEntries(def.inputParams.map((p) => [p.name, p.default ?? ''])) }
-        })
-        toast.success(`${def.label} added`)
-    }, [reactflow])
+        e.dataTransfer.dropEffect = 'move'
+    }, [])
 
-    const onNodeClick = useCallback((_, node) => { setSelectedNode(node) }, [])
-    const onPaneClick = useCallback(() => { setSelectedNode(null) }, [])
-    const handleSave = () => { markSaved(); toast.success('Flow saved') }
+    const onDrop = useCallback(
+        (e) => {
+            e.preventDefault()
+            const type = e.dataTransfer.getData('application/reactflow-nodetype')
+            if (!type || !NODE_DEFS[type]) return
+            const def = NODE_DEFS[type]
+            const bounds = wrapperRef.current?.getBoundingClientRect()
+            const position = reactflow.screenToFlowPosition({ x: e.clientX - (bounds?.left || 0), y: e.clientY - (bounds?.top || 0) })
+            const nodeId = `${type}-${Date.now()}`
+            addNode({
+                id: nodeId,
+                type: 'flowNode',
+                position,
+                data: {
+                    nodeType: type,
+                    label: def.label,
+                    params: Object.fromEntries(def.inputParams.map((p) => [p.name, p.default ?? '']))
+                }
+            })
+            play('nodeDrop')
+            toast.success(`${def.label} added`)
+        },
+        [reactflow, play]
+    )
+
+    const handleConnect = useCallback((connection) => {
+        onConnect(connection)
+        play('nodeConnect')
+    }, [onConnect, play])
+
+    const onNodeClick = useCallback((_, node) => {
+        setSelectedNode(node)
+    }, [])
+    const onPaneClick = useCallback(() => {
+        setSelectedNode(null)
+    }, [])
+    const handleSave = () => {
+        markSaved()
+        play('success')
+        toast.success('Flow saved')
+    }
 
     return (
         <div className='flex h-screen w-screen flex-col overflow-hidden bg-background'>
@@ -451,7 +590,11 @@ function CanvasInner() {
                     onChange={(e) => setFlowName(e.target.value)}
                     className='h-7 text-sm font-display font-semibold border-transparent bg-transparent hover:bg-secondary focus:bg-secondary max-w-[280px]'
                 />
-                {isDirty && <Badge variant='secondary' className='text-[9px] font-mono shrink-0'>unsaved</Badge>}
+                {isDirty && (
+                    <Badge variant='secondary' className='text-[9px] font-mono shrink-0'>
+                        unsaved
+                    </Badge>
+                )}
                 <div className='flex-1' />
                 <Button variant='ghost' size='sm' className='gap-1.5 text-xs h-7' onClick={() => setShowPalette((v) => !v)}>
                     <IconLayoutGrid size={13} />
@@ -478,7 +621,7 @@ function CanvasInner() {
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
+                        onConnect={handleConnect}
                         onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
                         nodeTypes={nodeTypes}
@@ -526,9 +669,12 @@ function buildInitialNodes(flow) {
     const tags = flow.tags || []
 
     const mk = (id, type, x, y, extra = {}) => ({
-        id, type: 'flowNode', position: { x, y },
+        id,
+        type: 'flowNode',
+        position: { x, y },
         data: {
-            nodeType: type, label: NODE_DEFS[type]?.label || type,
+            nodeType: type,
+            label: NODE_DEFS[type]?.label || type,
             params: Object.fromEntries((NODE_DEFS[type]?.inputParams || []).map((p) => [p.name, p.default ?? ''])),
             ...extra
         }
@@ -566,7 +712,15 @@ function buildInitialEdges(nodes) {
     let counter = 0
     const link = (src, srcH, tgt, tgtH) => {
         if (ids.has(src) && ids.has(tgt)) {
-            edges.push({ id: `e${counter++}`, source: src, sourceHandle: srcH, target: tgt, targetHandle: tgtH, animated: true, style: { stroke: '#6366F1', strokeWidth: 1.5 } })
+            edges.push({
+                id: `e${counter++}`,
+                source: src,
+                sourceHandle: srcH,
+                target: tgt,
+                targetHandle: tgtH,
+                animated: true,
+                style: { stroke: '#6366F1', strokeWidth: 1.5 }
+            })
         }
     }
     // RAG flow

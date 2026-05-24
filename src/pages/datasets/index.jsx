@@ -20,14 +20,25 @@ function DatasetDialog({ open, onClose, onSave, initial }) {
     const isEdit = !!initial
 
     const handleSave = () => {
-        if (!name.trim()) { toast.error('Name is required'); return }
+        if (!name.trim()) {
+            toast.error('Name is required')
+            return
+        }
         onSave({
-            name: name.trim(), description: desc.trim(),
-            tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-            rows: parseInt(rows) || 0, status: initial?.status || 'draft',
+            name: name.trim(),
+            description: desc.trim(),
+            tags: tags
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean),
+            rows: parseInt(rows) || 0,
+            status: initial?.status || 'draft',
             updatedDate: new Date().toISOString()
         })
-        setName(''); setDesc(''); setTags(''); setRows('')
+        setName('')
+        setDesc('')
+        setTags('')
+        setRows('')
     }
 
     return (
@@ -57,8 +68,18 @@ function DatasetDialog({ open, onClose, onSave, initial }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleSave}>{isEdit ? 'Save Changes' : <><IconPlus size={14} /> Create</>}</Button>
+                    <Button variant='outline' onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleSave}>
+                        {isEdit ? (
+                            'Save Changes'
+                        ) : (
+                            <>
+                                <IconPlus size={14} /> Create
+                            </>
+                        )}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -70,9 +91,13 @@ function UploadDialog({ open, onClose, onUpload }) {
     const [name, setName] = useState('')
 
     const handleUpload = () => {
-        if (!file && !name.trim()) { toast.error('Provide a name or select a file'); return }
+        if (!file && !name.trim()) {
+            toast.error('Provide a name or select a file')
+            return
+        }
         onUpload({ name: name.trim() || file?.name || 'Uploaded Dataset', file })
-        setFile(null); setName('')
+        setFile(null)
+        setName('')
     }
 
     return (
@@ -87,15 +112,30 @@ function UploadDialog({ open, onClose, onUpload }) {
                     <div className='border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors'>
                         <IconUpload size={24} className='mx-auto text-muted-foreground mb-2' />
                         <p className='text-sm text-muted-foreground mb-3'>Drop a CSV or JSON file here</p>
-                        <input type='file' accept='.csv,.json,.jsonl' className='hidden' id='file-upload'
-                            onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFile(f); setName(f.name.replace(/\.[^.]+$/, '')) } }} />
+                        <input
+                            type='file'
+                            accept='.csv,.json,.jsonl'
+                            className='hidden'
+                            id='file-upload'
+                            onChange={(e) => {
+                                const f = e.target.files?.[0]
+                                if (f) {
+                                    setFile(f)
+                                    setName(f.name.replace(/\.[^.]+$/, ''))
+                                }
+                            }}
+                        />
                         <label htmlFor='file-upload'>
-                            <Button variant='outline' size='sm' asChild><span>Browse files</span></Button>
+                            <Button variant='outline' size='sm' asChild>
+                                <span>Browse files</span>
+                            </Button>
                         </label>
                         {file && (
                             <div className='mt-3 flex items-center justify-center gap-2 text-xs text-foreground'>
                                 <span className='font-mono'>{file.name}</span>
-                                <button onClick={() => setFile(null)}><IconX size={12} className='text-muted-foreground' /></button>
+                                <button onClick={() => setFile(null)}>
+                                    <IconX size={12} className='text-muted-foreground' />
+                                </button>
                             </div>
                         )}
                     </div>
@@ -105,8 +145,12 @@ function UploadDialog({ open, onClose, onUpload }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleUpload}><IconUpload size={14} /> Upload</Button>
+                    <Button variant='outline' onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleUpload}>
+                        <IconUpload size={14} /> Upload
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -124,15 +168,38 @@ export default function Datasets() {
         (d) => d.name.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase())
     )
 
-    const handleAdd = (data) => { setItems((p) => [{ ...data, id: `ds-${Date.now()}` }, ...p]); setShowAdd(false); toast.success('Dataset created') }
-    const handleEdit = (data) => { setItems((p) => p.map((x) => x.id === editing.id ? { ...x, ...data } : x)); setEditing(null); toast.success('Updated') }
-    const handleDelete = (id) => { setItems((p) => p.filter((x) => x.id !== id)); toast.success('Deleted') }
+    const handleAdd = (data) => {
+        setItems((p) => [{ ...data, id: `ds-${Date.now()}` }, ...p])
+        setShowAdd(false)
+        toast.success('Dataset created')
+    }
+    const handleEdit = (data) => {
+        setItems((p) => p.map((x) => (x.id === editing.id ? { ...x, ...data } : x)))
+        setEditing(null)
+        toast.success('Updated')
+    }
+    const handleDelete = (id) => {
+        setItems((p) => p.filter((x) => x.id !== id))
+        toast.success('Deleted')
+    }
     const handleUpload = (data) => {
-        setItems((p) => [{ ...data, id: `ds-${Date.now()}`, rows: data.file ? Math.floor(Math.random() * 2000) + 100 : 0, tags: [], status: 'processing', updatedDate: new Date().toISOString() }, ...p])
+        setItems((p) => [
+            {
+                ...data,
+                id: `ds-${Date.now()}`,
+                rows: data.file ? Math.floor(Math.random() * 2000) + 100 : 0,
+                tags: [],
+                status: 'processing',
+                updatedDate: new Date().toISOString()
+            },
+            ...p
+        ])
         setShowUpload(false)
         toast.success('Upload started — processing...')
     }
-    const handleExport = (d) => { toast.success(`Exporting ${d.name}...`) }
+    const handleExport = (d) => {
+        toast.success(`Exporting ${d.name}...`)
+    }
 
     return (
         <div className='space-y-6 animate-fade-in'>
@@ -143,7 +210,12 @@ export default function Datasets() {
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
-                    <Input placeholder='Search datasets...' className='pl-8 h-8 text-sm' value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <Input
+                        placeholder='Search datasets...'
+                        className='pl-8 h-8 text-sm'
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
                 <div className='flex gap-2'>
                     <Button variant='outline' size='sm' onClick={() => setShowUpload(true)}>
@@ -177,7 +249,9 @@ export default function Datasets() {
                                         </div>
                                         <div>
                                             <div className='font-medium text-sm text-foreground'>{d.name}</div>
-                                            <div className='text-xs text-muted-foreground hidden sm:block line-clamp-1'>{d.description}</div>
+                                            <div className='text-xs text-muted-foreground hidden sm:block line-clamp-1'>
+                                                {d.description}
+                                            </div>
                                         </div>
                                     </div>
                                 </TableCell>
@@ -187,23 +261,40 @@ export default function Datasets() {
                                 <TableCell className='hidden md:table-cell'>
                                     <div className='flex gap-1 flex-wrap'>
                                         {d.tags?.map((t) => (
-                                            <span key={t} className='text-[9px] font-mono bg-secondary border border-border rounded px-1.5 py-0.5 text-muted-foreground'>{t}</span>
+                                            <span
+                                                key={t}
+                                                className='text-[9px] font-mono bg-secondary border border-border rounded px-1.5 py-0.5 text-muted-foreground'
+                                            >
+                                                {t}
+                                            </span>
                                         ))}
                                     </div>
                                 </TableCell>
-                                <TableCell className='hidden lg:table-cell text-xs text-muted-foreground'>{formatRelativeTime(d.updatedDate)}</TableCell>
+                                <TableCell className='hidden lg:table-cell text-xs text-muted-foreground'>
+                                    {formatRelativeTime(d.updatedDate)}
+                                </TableCell>
                                 <TableCell className='hidden sm:table-cell'>
-                                    <Badge variant={STATUS_VARIANT[d.status] || 'secondary'} className='text-[10px]'>{d.status}</Badge>
+                                    <Badge variant={STATUS_VARIANT[d.status] || 'secondary'} className='text-[10px]'>
+                                        {d.status}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant='ghost' size='icon-sm'><IconDots size={14} /></Button>
+                                            <Button variant='ghost' size='icon-sm'>
+                                                <IconDots size={14} />
+                                            </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align='end'>
-                                            <DropdownMenuItem onClick={() => setEditing(d)}><IconEdit size={13} /> Edit</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleExport(d)}><IconDownload size={13} /> Export</DropdownMenuItem>
-                                            <DropdownMenuItem className='text-destructive' onClick={() => handleDelete(d.id)}><IconTrash size={13} /> Delete</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setEditing(d)}>
+                                                <IconEdit size={13} /> Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleExport(d)}>
+                                                <IconDownload size={13} /> Export
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className='text-destructive' onClick={() => handleDelete(d.id)}>
+                                                <IconTrash size={13} /> Delete
+                                            </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>

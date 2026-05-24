@@ -30,8 +30,14 @@ function DeployDialog({ open, onClose, onDeploy }) {
     const [region, setRegion] = useState('us-east-1')
 
     const handleDeploy = () => {
-        if (!name.trim()) { toast.error('Deployment name is required'); return }
-        if (!selectedFlow) { toast.error('Select a flow to deploy'); return }
+        if (!name.trim()) {
+            toast.error('Deployment name is required')
+            return
+        }
+        if (!selectedFlow) {
+            toast.error('Select a flow to deploy')
+            return
+        }
         const flow = allFlows.find((f) => f.id === selectedFlow)
         onDeploy({
             name: name.trim(),
@@ -45,7 +51,8 @@ function DeployDialog({ open, onClose, onDeploy }) {
             region,
             deployedAt: new Date().toISOString()
         })
-        setName(''); setRegion('us-east-1')
+        setName('')
+        setRegion('us-east-1')
     }
 
     return (
@@ -63,31 +70,52 @@ function DeployDialog({ open, onClose, onDeploy }) {
                     </div>
                     <div className='space-y-1.5'>
                         <label className='text-xs font-medium text-muted-foreground'>Flow</label>
-                        <select value={selectedFlow} onChange={(e) => setSelectedFlow(e.target.value)}
-                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'>
-                            {allFlows.length === 0
-                                ? <option value=''>No flows available</option>
-                                : allFlows.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)
-                            }
+                        <select
+                            value={selectedFlow}
+                            onChange={(e) => setSelectedFlow(e.target.value)}
+                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
+                        >
+                            {allFlows.length === 0 ? (
+                                <option value=''>No flows available</option>
+                            ) : (
+                                allFlows.map((f) => (
+                                    <option key={f.id} value={f.id}>
+                                        {f.name}
+                                    </option>
+                                ))
+                            )}
                         </select>
                     </div>
                     <div className='space-y-1.5'>
                         <label className='text-xs font-medium text-muted-foreground'>Region</label>
-                        <select value={region} onChange={(e) => setRegion(e.target.value)}
-                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'>
-                            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                        <select
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
+                        >
+                            {REGIONS.map((r) => (
+                                <option key={r} value={r}>
+                                    {r}
+                                </option>
+                            ))}
                         </select>
                     </div>
                     {name && (
                         <div className='rounded-lg border border-border bg-secondary/40 p-3'>
                             <p className='text-[10px] text-muted-foreground mb-1'>Endpoint preview</p>
-                            <code className='text-[10px] font-mono text-primary/80'>POST https://api.haxon.io/v1/flows/{name.toLowerCase().replace(/\s+/g, '-')}</code>
+                            <code className='text-[10px] font-mono text-primary/80'>
+                                POST https://api.haxon.io/v1/flows/{name.toLowerCase().replace(/\s+/g, '-')}
+                            </code>
                         </div>
                     )}
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleDeploy}><IconApi size={14} /> Deploy</Button>
+                    <Button variant='outline' onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleDeploy}>
+                        <IconApi size={14} /> Deploy
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -182,13 +210,20 @@ export default function Deployments() {
         toast.success('Endpoint copied!')
     }
 
-    const handleDeploy = (data) => { setDeps((p) => [{ ...data, id: `dep-${Date.now()}` }, ...p]); setShowDeploy(false); toast.success('Deployed!') }
+    const handleDeploy = (data) => {
+        setDeps((p) => [{ ...data, id: `dep-${Date.now()}` }, ...p])
+        setShowDeploy(false)
+        toast.success('Deployed!')
+    }
     const handleToggle = (id) => {
-        setDeps((p) => p.map((d) => d.id === id ? { ...d, status: d.status === 'live' ? 'paused' : 'live' } : d))
+        setDeps((p) => p.map((d) => (d.id === id ? { ...d, status: d.status === 'live' ? 'paused' : 'live' } : d)))
         const dep = deps.find((d) => d.id === id)
         toast.success(dep?.status === 'live' ? 'Paused' : 'Resumed')
     }
-    const handleDelete = (id) => { setDeps((p) => p.filter((d) => d.id !== id)); toast.success('Removed') }
+    const handleDelete = (id) => {
+        setDeps((p) => p.filter((d) => d.id !== id))
+        toast.success('Removed')
+    }
 
     return (
         <div className='space-y-6 animate-fade-in'>
@@ -286,7 +321,12 @@ export default function Deployments() {
                                     <Button variant='ghost' size='icon-sm' onClick={() => handleToggle(dep.id)}>
                                         {dep.status === 'live' ? <IconPlayerPause size={13} /> : <IconPlayerPlay size={13} />}
                                     </Button>
-                                    <Button variant='ghost' size='icon-sm' className='text-destructive hover:text-destructive' onClick={() => handleDelete(dep.id)}>
+                                    <Button
+                                        variant='ghost'
+                                        size='icon-sm'
+                                        className='text-destructive hover:text-destructive'
+                                        onClick={() => handleDelete(dep.id)}
+                                    >
                                         <IconTrash size={13} />
                                     </Button>
                                 </div>

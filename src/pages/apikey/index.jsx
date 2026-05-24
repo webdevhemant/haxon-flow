@@ -22,14 +22,29 @@ function CreateKeyDialog({ open, onClose, onSave }) {
     const [generatedKey, setGeneratedKey] = useState(null)
 
     const handleCreate = () => {
-        if (!name.trim()) { toast.error('Key name is required'); return }
+        if (!name.trim()) {
+            toast.error('Key name is required')
+            return
+        }
         const key = generateKey()
         setGeneratedKey(key)
-        onSave({ keyName: name.trim(), description: desc.trim(), keyMasked: key.slice(0, 12) + '••••••••••••', keyFull: key, rateLimit: parseInt(rateLimit) || 100, status: 'active', usageCount: 0, createdDate: new Date().toISOString() })
+        onSave({
+            keyName: name.trim(),
+            description: desc.trim(),
+            keyMasked: key.slice(0, 12) + '••••••••••••',
+            keyFull: key,
+            rateLimit: parseInt(rateLimit) || 100,
+            status: 'active',
+            usageCount: 0,
+            createdDate: new Date().toISOString()
+        })
     }
 
     const handleClose = () => {
-        setName(''); setDesc(''); setRateLimit('100'); setGeneratedKey(null)
+        setName('')
+        setDesc('')
+        setRateLimit('100')
+        setGeneratedKey(null)
         onClose()
     }
 
@@ -47,7 +62,14 @@ function CreateKeyDialog({ open, onClose, onSave }) {
                             <p className='text-xs text-muted-foreground mb-2'>Copy your key now — it won&apos;t be shown again.</p>
                             <code className='block font-mono text-xs text-foreground break-all'>{generatedKey}</code>
                         </div>
-                        <Button variant='outline' className='w-full gap-2' onClick={() => { navigator.clipboard.writeText(generatedKey); toast.success('Copied!') }}>
+                        <Button
+                            variant='outline'
+                            className='w-full gap-2'
+                            onClick={() => {
+                                navigator.clipboard.writeText(generatedKey)
+                                toast.success('Copied!')
+                            }}
+                        >
                             <IconCopy size={13} /> Copy to Clipboard
                         </Button>
                     </div>
@@ -76,12 +98,23 @@ function CreateKeyDialog({ open, onClose, onSave }) {
                     </div>
                     <div className='space-y-1.5'>
                         <label className='text-xs font-medium text-muted-foreground'>Rate limit (requests/min)</label>
-                        <Input value={rateLimit} onChange={(e) => setRateLimit(e.target.value)} type='number' min='1' max='10000' className='font-mono' />
+                        <Input
+                            value={rateLimit}
+                            onChange={(e) => setRateLimit(e.target.value)}
+                            type='number'
+                            min='1'
+                            max='10000'
+                            className='font-mono'
+                        />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={handleClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleCreate}><IconKey size={14} /> Generate Key</Button>
+                    <Button variant='outline' onClick={handleClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleCreate}>
+                        <IconKey size={14} /> Generate Key
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -95,7 +128,10 @@ export default function APIKey() {
 
     const filtered = items.filter((k) => (k.keyName || k.name || '').toLowerCase().includes(search.toLowerCase()))
 
-    const handleCopy = (val) => { navigator.clipboard.writeText(val).catch(() => {}); toast.success('Key copied to clipboard') }
+    const handleCopy = (val) => {
+        navigator.clipboard.writeText(val).catch(() => {})
+        toast.success('Key copied to clipboard')
+    }
 
     const handleCreate = (data) => {
         setItems((p) => [{ ...data, id: `key-${Date.now()}` }, ...p])
@@ -108,7 +144,7 @@ export default function APIKey() {
     }
 
     const handleToggle = (id, status) => {
-        setItems((p) => p.map((k) => k.id === id ? { ...k, status: status === 'active' ? 'disabled' : 'active' } : k))
+        setItems((p) => p.map((k) => (k.id === id ? { ...k, status: status === 'active' ? 'disabled' : 'active' } : k)))
         toast.success(status === 'active' ? 'Key disabled' : 'Key enabled')
     }
 
@@ -119,7 +155,12 @@ export default function APIKey() {
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
-                    <Input placeholder='Search API keys...' className='pl-8 h-8 text-sm' value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <Input
+                        placeholder='Search API keys...'
+                        className='pl-8 h-8 text-sm'
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
                 <Button variant='gradient' size='sm' onClick={() => setShowCreate(true)}>
                     <IconPlus size={14} /> Create Key
@@ -130,7 +171,9 @@ export default function APIKey() {
                 <IconShieldCheck size={18} className='text-primary shrink-0' />
                 <div>
                     <p className='text-sm font-medium text-foreground'>Treat API keys like passwords</p>
-                    <p className='text-xs text-muted-foreground mt-0.5'>Never expose them in client-side code or public repositories. Rotate keys regularly.</p>
+                    <p className='text-xs text-muted-foreground mt-0.5'>
+                        Never expose them in client-side code or public repositories. Rotate keys regularly.
+                    </p>
                 </div>
             </div>
 
@@ -156,14 +199,21 @@ export default function APIKey() {
                                         </div>
                                         <div>
                                             <div className='font-medium text-sm text-foreground'>{key.keyName || key.name}</div>
-                                            {key.description && <div className='text-xs text-muted-foreground hidden sm:block'>{key.description}</div>}
+                                            {key.description && (
+                                                <div className='text-xs text-muted-foreground hidden sm:block'>{key.description}</div>
+                                            )}
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell className='hidden sm:table-cell'>
                                     <div className='flex items-center gap-2'>
-                                        <code className='font-mono text-xs text-muted-foreground bg-secondary rounded px-2 py-0.5'>{key.keyMasked}</code>
-                                        <button onClick={() => handleCopy(key.keyMasked)} className='text-muted-foreground hover:text-foreground transition-colors'>
+                                        <code className='font-mono text-xs text-muted-foreground bg-secondary rounded px-2 py-0.5'>
+                                            {key.keyMasked}
+                                        </code>
+                                        <button
+                                            onClick={() => handleCopy(key.keyMasked)}
+                                            className='text-muted-foreground hover:text-foreground transition-colors'
+                                        >
                                             <IconCopy size={13} />
                                         </button>
                                     </div>
@@ -172,14 +222,20 @@ export default function APIKey() {
                                     <span className='font-mono text-sm text-foreground'>{key.usageCount.toLocaleString()}</span>
                                     <span className='text-xs text-muted-foreground ml-1'>calls</span>
                                 </TableCell>
-                                <TableCell className='hidden lg:table-cell text-xs text-muted-foreground font-mono'>{key.rateLimit}/min</TableCell>
+                                <TableCell className='hidden lg:table-cell text-xs text-muted-foreground font-mono'>
+                                    {key.rateLimit}/min
+                                </TableCell>
                                 <TableCell className='hidden sm:table-cell'>
-                                    <Badge variant={key.status === 'active' ? 'success' : 'secondary'} className='text-[10px]'>{key.status}</Badge>
+                                    <Badge variant={key.status === 'active' ? 'success' : 'secondary'} className='text-[10px]'>
+                                        {key.status}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant='ghost' size='icon-sm'><IconDots size={14} /></Button>
+                                            <Button variant='ghost' size='icon-sm'>
+                                                <IconDots size={14} />
+                                            </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align='end'>
                                             <DropdownMenuItem onClick={() => handleCopy(key.keyMasked)}>
@@ -188,7 +244,10 @@ export default function APIKey() {
                                             <DropdownMenuItem onClick={() => handleToggle(key.id, key.status)}>
                                                 <IconRefresh size={13} /> {key.status === 'active' ? 'Disable' : 'Enable'}
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className='text-destructive focus:text-destructive' onClick={() => handleRevoke(key.id)}>
+                                            <DropdownMenuItem
+                                                className='text-destructive focus:text-destructive'
+                                                onClick={() => handleRevoke(key.id)}
+                                            >
                                                 <IconTrash size={13} /> Revoke
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>

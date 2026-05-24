@@ -28,9 +28,24 @@ function ToolDialog({ open, onClose, onSave, initial }) {
     const isEdit = !!initial
 
     const handleSave = () => {
-        if (!name.trim()) { toast.error('Name is required'); return }
-        onSave({ name: name.trim(), description: desc.trim(), category, iconColor: color, code, usageCount: initial?.usageCount || 0, flowCount: initial?.flowCount || 0 })
-        setName(''); setDesc(''); setCategory('Utility'); setColor('#6366F1'); setCode(DEFAULT_CODE)
+        if (!name.trim()) {
+            toast.error('Name is required')
+            return
+        }
+        onSave({
+            name: name.trim(),
+            description: desc.trim(),
+            category,
+            iconColor: color,
+            code,
+            usageCount: initial?.usageCount || 0,
+            flowCount: initial?.flowCount || 0
+        })
+        setName('')
+        setDesc('')
+        setCategory('Utility')
+        setColor('#6366F1')
+        setCode(DEFAULT_CODE)
     }
 
     return (
@@ -51,18 +66,31 @@ function ToolDialog({ open, onClose, onSave, initial }) {
                         </div>
                         <div className='space-y-1.5'>
                             <label className='text-xs font-medium text-muted-foreground'>Category</label>
-                            <select value={category} onChange={(e) => setCategory(e.target.value)}
-                                className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'>
-                                {CATEGORIES.filter((c) => c !== 'All').map((c) => <option key={c} value={c}>{c}</option>)}
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
+                            >
+                                {CATEGORIES.filter((c) => c !== 'All').map((c) => (
+                                    <option key={c} value={c}>
+                                        {c}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <div className='space-y-1.5'>
                             <label className='text-xs font-medium text-muted-foreground'>Color</label>
                             <div className='flex gap-2 flex-wrap'>
                                 {COLORS.map((c) => (
-                                    <button key={c} onClick={() => setColor(c)}
-                                        className={cn('h-6 w-6 rounded-full border-2 transition-all', color === c ? 'border-foreground scale-110' : 'border-transparent')}
-                                        style={{ background: c }} />
+                                    <button
+                                        key={c}
+                                        onClick={() => setColor(c)}
+                                        className={cn(
+                                            'h-6 w-6 rounded-full border-2 transition-all',
+                                            color === c ? 'border-foreground scale-110' : 'border-transparent'
+                                        )}
+                                        style={{ background: c }}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -80,8 +108,18 @@ function ToolDialog({ open, onClose, onSave, initial }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleSave}>{isEdit ? 'Save Changes' : <><IconPlus size={14} /> Create Tool</>}</Button>
+                    <Button variant='outline' onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleSave}>
+                        {isEdit ? (
+                            'Save Changes'
+                        ) : (
+                            <>
+                                <IconPlus size={14} /> Create Tool
+                            </>
+                        )}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -96,7 +134,8 @@ export default function Tools() {
     const [editing, setEditing] = useState(null)
 
     const filtered = items.filter((t) => {
-        const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase())
+        const matchSearch =
+            t.name.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase())
         const matchCat = category === 'All' || t.category === category
         return matchSearch && matchCat
     })
@@ -108,7 +147,7 @@ export default function Tools() {
     }
 
     const handleEdit = (data) => {
-        setItems((p) => p.map((t) => t.id === editing.id ? { ...t, ...data } : t))
+        setItems((p) => p.map((t) => (t.id === editing.id ? { ...t, ...data } : t)))
         setEditing(null)
         toast.success('Tool updated')
     }
@@ -131,7 +170,12 @@ export default function Tools() {
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
-                    <Input placeholder='Search tools...' className='pl-8 h-8 text-sm' value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <Input
+                        placeholder='Search tools...'
+                        className='pl-8 h-8 text-sm'
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
                 <Button variant='gradient' size='sm' onClick={() => setShowAdd(true)}>
                     <IconPlus size={14} /> New Tool
@@ -140,11 +184,16 @@ export default function Tools() {
 
             <div className='flex flex-wrap gap-2'>
                 {CATEGORIES.map((cat) => (
-                    <button key={cat} onClick={() => setCategory(cat)}
-                        className={cn('rounded-full px-3 py-1 text-xs font-medium transition-all',
+                    <button
+                        key={cat}
+                        onClick={() => setCategory(cat)}
+                        className={cn(
+                            'rounded-full px-3 py-1 text-xs font-medium transition-all',
                             category === cat
                                 ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                : 'bg-secondary text-muted-foreground border border-border hover:border-primary/30 hover:text-foreground')}>
+                                : 'bg-secondary text-muted-foreground border border-border hover:border-primary/30 hover:text-foreground'
+                        )}
+                    >
                         {cat}
                     </button>
                 ))}
@@ -152,24 +201,43 @@ export default function Tools() {
 
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
                 {filtered.map((tool, i) => (
-                    <Card key={tool.id} className={cn('card-hover overflow-hidden group relative animate-slide-up', `stagger-${Math.min(i + 1, 8)}`)}>
-                        <div className='absolute -top-8 -right-8 h-20 w-20 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity'
-                            style={{ background: tool.iconColor }} />
+                    <Card
+                        key={tool.id}
+                        className={cn('card-hover overflow-hidden group relative animate-slide-up', `stagger-${Math.min(i + 1, 8)}`)}
+                    >
+                        <div
+                            className='absolute -top-8 -right-8 h-20 w-20 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity'
+                            style={{ background: tool.iconColor }}
+                        />
                         <CardContent className='p-5'>
                             <div className='flex items-start justify-between mb-4'>
-                                <div className='rounded-xl p-2.5' style={{ background: tool.iconColor + '18', border: `1px solid ${tool.iconColor}28` }}>
+                                <div
+                                    className='rounded-xl p-2.5'
+                                    style={{ background: tool.iconColor + '18', border: `1px solid ${tool.iconColor}28` }}
+                                >
                                     <IconTool size={16} style={{ color: tool.iconColor }} />
                                 </div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant='ghost' size='icon-sm' className='opacity-0 group-hover:opacity-100 transition-opacity'>
+                                        <Button
+                                            variant='ghost'
+                                            size='icon-sm'
+                                            className='opacity-0 group-hover:opacity-100 transition-opacity'
+                                        >
                                             <IconDots size={14} />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align='end'>
-                                        <DropdownMenuItem onClick={() => setEditing(tool)}><IconEdit size={13} /> Edit</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDuplicate(tool)}><IconCopy size={13} /> Duplicate</DropdownMenuItem>
-                                        <DropdownMenuItem className='text-destructive focus:text-destructive' onClick={() => handleDelete(tool.id)}>
+                                        <DropdownMenuItem onClick={() => setEditing(tool)}>
+                                            <IconEdit size={13} /> Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDuplicate(tool)}>
+                                            <IconCopy size={13} /> Duplicate
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className='text-destructive focus:text-destructive'
+                                            onClick={() => handleDelete(tool.id)}
+                                        >
                                             <IconTrash size={13} /> Delete
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -178,7 +246,9 @@ export default function Tools() {
                             <h3 className='font-display text-sm font-semibold mb-1.5'>{tool.name}</h3>
                             <p className='text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed'>{tool.description}</p>
                             <div className='flex items-center gap-2 mb-4'>
-                                <Badge variant='secondary' className='text-[10px]'>{tool.category}</Badge>
+                                <Badge variant='secondary' className='text-[10px]'>
+                                    {tool.category}
+                                </Badge>
                             </div>
                             <div className='flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border'>
                                 <span className='flex items-center gap-1'>

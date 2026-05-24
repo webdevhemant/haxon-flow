@@ -18,7 +18,7 @@ const PROVIDERS = [
     { value: 'postgres', label: 'PostgreSQL', color: '#6366F1' },
     { value: 'slackBot', label: 'Slack Bot', color: '#EF4444' },
     { value: 'huggingfaceApi', label: 'HuggingFace', color: '#F97316' },
-    { value: 'openRouterApi', label: 'OpenRouter', color: '#8B5CF6' },
+    { value: 'openRouterApi', label: 'OpenRouter', color: '#8B5CF6' }
 ]
 
 const TYPE_COLORS = Object.fromEntries(PROVIDERS.map((p) => [p.value, p.color]))
@@ -32,10 +32,26 @@ function CredentialDialog({ open, onClose, onSave, initial }) {
     const isEdit = !!initial
 
     const handleSave = () => {
-        if (!name.trim()) { toast.error('Name is required'); return }
-        if (!isEdit && !key.trim()) { toast.error('API key is required'); return }
-        onSave({ name: name.trim(), type, description: desc.trim(), apiKey: key, usedInFlows: initial?.usedInFlows || 0, lastUsed: new Date().toISOString() })
-        setName(''); setType('openAIApi'); setDesc(''); setKey('')
+        if (!name.trim()) {
+            toast.error('Name is required')
+            return
+        }
+        if (!isEdit && !key.trim()) {
+            toast.error('API key is required')
+            return
+        }
+        onSave({
+            name: name.trim(),
+            type,
+            description: desc.trim(),
+            apiKey: key,
+            usedInFlows: initial?.usedInFlows || 0,
+            lastUsed: new Date().toISOString()
+        })
+        setName('')
+        setType('openAIApi')
+        setDesc('')
+        setKey('')
     }
 
     return (
@@ -59,11 +75,17 @@ function CredentialDialog({ open, onClose, onSave, initial }) {
                             onChange={(e) => setType(e.target.value)}
                             className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
                         >
-                            {PROVIDERS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                            {PROVIDERS.map((p) => (
+                                <option key={p.value} value={p.value}>
+                                    {p.label}
+                                </option>
+                            ))}
                         </select>
                     </div>
                     <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>{isEdit ? 'New API Key (leave blank to keep current)' : 'API Key'}</label>
+                        <label className='text-xs font-medium text-muted-foreground'>
+                            {isEdit ? 'New API Key (leave blank to keep current)' : 'API Key'}
+                        </label>
                         <Input value={key} onChange={(e) => setKey(e.target.value)} type='password' placeholder='sk-...' />
                     </div>
                     <div className='space-y-1.5'>
@@ -72,8 +94,18 @@ function CredentialDialog({ open, onClose, onSave, initial }) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>Cancel</Button>
-                    <Button variant='gradient' onClick={handleSave}>{isEdit ? 'Save Changes' : <><IconPlus size={14} /> Add</>}</Button>
+                    <Button variant='outline' onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant='gradient' onClick={handleSave}>
+                        {isEdit ? (
+                            'Save Changes'
+                        ) : (
+                            <>
+                                <IconPlus size={14} /> Add
+                            </>
+                        )}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -95,7 +127,7 @@ export default function Credentials() {
     }
 
     const handleEdit = (data) => {
-        setItems((p) => p.map((c) => c.id === editing.id ? { ...c, ...data } : c))
+        setItems((p) => p.map((c) => (c.id === editing.id ? { ...c, ...data } : c)))
         setEditing(null)
         toast.success('Credential updated')
     }
@@ -113,7 +145,12 @@ export default function Credentials() {
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
                     <IconSearch size={14} className='absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
-                    <Input placeholder='Search credentials...' className='pl-8 h-8 text-sm' value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <Input
+                        placeholder='Search credentials...'
+                        className='pl-8 h-8 text-sm'
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
                 <Button variant='gradient' size='sm' onClick={() => setShowAdd(true)}>
                     <IconPlus size={14} /> Add Credential
@@ -139,7 +176,10 @@ export default function Credentials() {
                                 <TableRow key={cred.id} className='animate-slide-up' style={{ animationDelay: `${i * 0.05}s` }}>
                                     <TableCell>
                                         <div className='flex items-center gap-3'>
-                                            <div className='rounded-lg p-1.5' style={{ background: color + '18', border: `1px solid ${color}28` }}>
+                                            <div
+                                                className='rounded-lg p-1.5'
+                                                style={{ background: color + '18', border: `1px solid ${color}28` }}
+                                            >
                                                 <IconKey size={14} style={{ color }} />
                                             </div>
                                             <div>
@@ -163,16 +203,26 @@ export default function Credentials() {
                                     <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant='ghost' size='icon-sm'><IconDots size={14} /></Button>
+                                                <Button variant='ghost' size='icon-sm'>
+                                                    <IconDots size={14} />
+                                                </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align='end'>
                                                 <DropdownMenuItem onClick={() => setEditing(cred)}>
                                                     <IconEdit size={13} /> Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => { navigator.clipboard.writeText('sk-***'); toast.success('Key copied') }}>
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText('sk-***')
+                                                        toast.success('Key copied')
+                                                    }}
+                                                >
                                                     <IconRefresh size={13} /> Rotate
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem className='text-destructive focus:text-destructive' onClick={() => handleDelete(cred.id)}>
+                                                <DropdownMenuItem
+                                                    className='text-destructive focus:text-destructive'
+                                                    onClick={() => handleDelete(cred.id)}
+                                                >
                                                     <IconTrash size={13} /> Delete
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>

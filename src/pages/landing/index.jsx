@@ -1,478 +1,489 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import {
-    IconArrowRight,
-    IconBolt,
-    IconBrain,
-    IconShield,
-    IconApi,
-    IconChartBar,
-    IconPlugConnected,
-    IconStar,
-    IconHierarchy2,
-    IconUsersGroup,
-    IconTool,
-    IconDatabase,
-    IconCheck
-} from '@tabler/icons-react'
+import { useSound } from '@/hooks/useSound'
 import { Logo } from '@/components/layout/Logo'
+import {
+    IconArrowRight, IconBolt, IconBrain, IconShield, IconApi, IconChartBar,
+    IconPlugConnected, IconStar, IconHierarchy2, IconUsersGroup, IconTool,
+    IconDatabase, IconCheck, IconArrowUpRight, IconCode, IconTerminal2,
+    IconWand, IconRocket, IconSparkles, IconPlayerPlay
+} from '@tabler/icons-react'
 
-/* ── Animated node graph canvas ── */
-function NodeCanvas() {
-    const canvasRef = useRef(null)
+/* ── Neural particle canvas ── */
+function NeuralCanvas() {
+    const ref = useRef(null)
+    const mouse = useRef({ x: -999, y: -999 })
     useEffect(() => {
-        const canvas = canvasRef.current
+        const canvas = ref.current
         if (!canvas) return
         const ctx = canvas.getContext('2d')
-        let animFrame
-        const resize = () => {
-            canvas.width = canvas.offsetWidth
-            canvas.height = canvas.offsetHeight
-        }
+        let raf
+
+        const resize = () => { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio) }
         resize()
         window.addEventListener('resize', resize)
 
-        const nodes = Array.from({ length: 14 }, (_, i) => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            r: Math.random() * 3 + 2,
-            color: ['#6366F1', '#22D3EE', '#A855F7', '#10B981'][i % 4],
+        const onMouse = (e) => { const r = canvas.getBoundingClientRect(); mouse.current = { x: e.clientX - r.left, y: e.clientY - r.top } }
+        window.addEventListener('mousemove', onMouse)
+
+        const COLORS = ['#009EFF', '#00C8FF', '#7B83FF', '#00FF6A', '#A855F7']
+        const nodes = Array.from({ length: 20 }, (_, i) => ({
+            x: Math.random() * (canvas.offsetWidth || 1200),
+            y: Math.random() * (canvas.offsetHeight || 700),
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            r: Math.random() * 2.5 + 1.5,
+            color: COLORS[i % COLORS.length],
             pulse: Math.random() * Math.PI * 2
         }))
 
-        const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
+        const draw = () => {
+            const W = canvas.offsetWidth, H = canvas.offsetHeight
+            ctx.clearRect(0, 0, W, H)
+
             nodes.forEach((n) => {
-                n.x += n.vx
-                n.y += n.vy
-                n.pulse += 0.02
-                if (n.x < 0 || n.x > canvas.width) n.vx *= -1
-                if (n.y < 0 || n.y > canvas.height) n.vy *= -1
+                n.x += n.vx; n.y += n.vy; n.pulse += 0.015
+                if (n.x < 0 || n.x > W) n.vx *= -1
+                if (n.y < 0 || n.y > H) n.vy *= -1
+
+                // Mouse attraction
+                const mdx = mouse.current.x - n.x, mdy = mouse.current.y - n.y
+                const md = Math.sqrt(mdx * mdx + mdy * mdy)
+                if (md < 200) { n.vx += mdx * 0.00015; n.vy += mdy * 0.00015 }
+                const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy)
+                if (speed > 1.2) { n.vx *= 0.98; n.vy *= 0.98 }
 
                 nodes.forEach((m) => {
-                    const dx = n.x - m.x,
-                        dy = n.y - m.y
+                    const dx = n.x - m.x, dy = n.y - m.y
                     const dist = Math.sqrt(dx * dx + dy * dy)
-                    if (dist < 160) {
+                    if (dist < 180 && dist > 0) {
+                        const alpha = 0.12 * (1 - dist / 180)
                         ctx.beginPath()
-                        ctx.strokeStyle = `rgba(99,102,241,${0.15 * (1 - dist / 160)})`
+                        const grad = ctx.createLinearGradient(n.x, n.y, m.x, m.y)
+                        grad.addColorStop(0, n.color + Math.round(alpha * 255).toString(16).padStart(2, '0'))
+                        grad.addColorStop(1, m.color + Math.round(alpha * 255).toString(16).padStart(2, '0'))
+                        ctx.strokeStyle = grad
                         ctx.lineWidth = 0.8
-                        ctx.moveTo(n.x, n.y)
-                        ctx.lineTo(m.x, m.y)
-                        ctx.stroke()
+                        ctx.moveTo(n.x, n.y); ctx.lineTo(m.x, m.y); ctx.stroke()
                     }
                 })
 
                 const glow = (Math.sin(n.pulse) + 1) / 2
-                const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3 + glow * 4)
-                grad.addColorStop(0, n.color + 'cc')
-                grad.addColorStop(1, n.color + '00')
-                ctx.beginPath()
-                ctx.arc(n.x, n.y, n.r * 3 + glow * 4, 0, Math.PI * 2)
-                ctx.fillStyle = grad
-                ctx.fill()
-
-                ctx.beginPath()
-                ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
-                ctx.fillStyle = n.color
-                ctx.fill()
+                const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4 + glow * 5)
+                grad.addColorStop(0, n.color + 'cc'); grad.addColorStop(1, n.color + '00')
+                ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 4 + glow * 5, 0, Math.PI * 2)
+                ctx.fillStyle = grad; ctx.fill()
+                ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
+                ctx.fillStyle = n.color; ctx.fill()
             })
-            animFrame = requestAnimationFrame(animate)
+            raf = requestAnimationFrame(draw)
         }
-        animate()
-        return () => {
-            cancelAnimationFrame(animFrame)
-            window.removeEventListener('resize', resize)
-        }
+        draw()
+        return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('mousemove', onMouse) }
     }, [])
-    return <canvas ref={canvasRef} className='absolute inset-0 w-full h-full opacity-60' />
+    return <canvas ref={ref} className='absolute inset-0 w-full h-full opacity-50' style={{ width: '100%', height: '100%' }} />
 }
 
+/* ── Scroll reveal hook ── */
+function useReveal() {
+    useEffect(() => {
+        const els = document.querySelectorAll('.reveal-hidden')
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('reveal-visible'); obs.unobserve(e.target) } })
+        }, { threshold: 0.12 })
+        els.forEach((el) => obs.observe(el))
+        return () => obs.disconnect()
+    }, [])
+}
+
+/* ── Animated counter ── */
+function Counter({ target, suffix = '' }) {
+    const [val, setVal] = useState(0)
+    const ref = useRef(null)
+    useEffect(() => {
+        const obs = new IntersectionObserver(([e]) => {
+            if (!e.isIntersecting) return
+            obs.disconnect()
+            const num = parseFloat(target.replace(/[^0-9.]/g, ''))
+            const hasDecimal = target.includes('.')
+            let start = 0
+            const step = () => {
+                start += num / 60
+                if (start >= num) { setVal(num); return }
+                setVal(hasDecimal ? +start.toFixed(1) : Math.floor(start))
+                requestAnimationFrame(step)
+            }
+            requestAnimationFrame(step)
+        }, { threshold: 0.5 })
+        obs.observe(ref.current)
+        return () => obs.disconnect()
+    }, [target])
+    return <span ref={ref}>{typeof val === 'number' && !isNaN(val) ? (val % 1 === 0 ? val : val.toFixed(1)) : 0}{suffix}</span>
+}
+
+/* ── Marquee ── */
+const MARQUEE_ITEMS = ['GPT-4o', 'Claude 3.5', 'Gemini 2.0', 'Llama 3.3', 'Mistral', 'Pinecone', 'Chroma', 'Qdrant', 'Weaviate', 'LangChain', 'HuggingFace', 'Anthropic', 'OpenAI', 'Groq', 'Cohere', 'Together AI']
+
+function Marquee() {
+    const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS]
+    return (
+        <div className='relative overflow-hidden py-6 border-y border-border/60'>
+            <div className='absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none' />
+            <div className='absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none' />
+            <div className='flex gap-8 animate-marquee whitespace-nowrap'>
+                {items.map((item, i) => (
+                    <span key={i} className='inline-flex items-center gap-2 text-sm text-muted-foreground font-mono'>
+                        <span className='h-1.5 w-1.5 rounded-full bg-primary/60' />
+                        {item}
+                    </span>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+/* ── Bento feature card ── */
+function BentoCard({ title, desc, icon: Icon, color, className, children }) {
+    const { play } = useSound()
+    return (
+        <div onMouseEnter={() => play('hover')}
+            className={cn('reveal-hidden group relative overflow-hidden rounded-2xl border border-border bg-card/60 p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5', className)}>
+            <div className='absolute -top-12 -right-12 h-32 w-32 rounded-full blur-3xl opacity-10 group-hover:opacity-25 transition-opacity' style={{ background: color }} />
+            <div className='relative z-10'>
+                <div className='mb-4 inline-flex rounded-xl p-2.5' style={{ background: color + '15', border: `1px solid ${color}25` }}>
+                    <Icon size={20} style={{ color }} />
+                </div>
+                <h3 className='font-display text-base font-semibold mb-2 text-foreground'>{title}</h3>
+                <p className='text-sm text-muted-foreground leading-relaxed'>{desc}</p>
+                {children}
+            </div>
+        </div>
+    )
+}
+
+/* ── Main landing ── */
 const FEATURES = [
-    {
-        icon: IconHierarchy2,
-        title: 'Visual Flow Builder',
-        desc: 'Drag-and-drop canvas with 100+ AI nodes. No code required.',
-        color: '#6366F1'
-    },
-    {
-        icon: IconUsersGroup,
-        title: 'Multi-Agent Orchestration',
-        desc: 'Coordinate multiple AI agents with conditional logic and parallel execution.',
-        color: '#A855F7'
-    },
-    {
-        icon: IconBrain,
-        title: 'Model Hub',
-        desc: 'Connect GPT-4o, Claude, Gemini, Llama and 20+ models in one interface.',
-        color: '#22D3EE'
-    },
-    {
-        icon: IconDatabase,
-        title: 'Vector Knowledge Base',
-        desc: 'Ingest PDFs, docs, and URLs. Power RAG pipelines with semantic search.',
-        color: '#10B981'
-    },
-    {
-        icon: IconApi,
-        title: 'One-Click Deploy',
-        desc: 'Publish any flow as a REST API endpoint with auth and rate limiting.',
-        color: '#F59E0B'
-    },
-    {
-        icon: IconChartBar,
-        title: 'Real-time Analytics',
-        desc: 'Monitor token usage, latency, errors and cost across all deployed flows.',
-        color: '#EF4444'
-    }
+    { icon: IconHierarchy2, title: 'Visual Flow Builder', desc: 'Drag-and-drop canvas with 100+ AI nodes. Build complex pipelines without touching code.', color: '#009EFF' },
+    { icon: IconUsersGroup, title: 'Multi-Agent Orchestration', desc: 'Coordinate multiple AI agents with conditional logic and parallel execution.', color: '#A855F7' },
+    { icon: IconBrain, title: 'Universal Model Hub', desc: 'GPT-4o, Claude, Gemini, Llama, Mistral and 20+ models. Switch with one click.', color: '#00C8FF' },
+    { icon: IconDatabase, title: 'Vector Knowledge Base', desc: 'Ingest PDFs, URLs, and docs. Power semantic RAG pipelines in minutes.', color: '#00FF6A' },
+    { icon: IconApi, title: 'One-Click Deploy', desc: 'Publish any flow as a REST API endpoint. Auth, rate limiting and monitoring included.', color: '#F59E0B' },
+    { icon: IconChartBar, title: 'Real-time Observability', desc: 'Monitor tokens, latency, errors, and cost across every deployed flow in real time.', color: '#EF4444' }
 ]
 
-const STATS = [
-    { value: '100+', label: 'AI Nodes' },
-    { value: '20+', label: 'LLM Providers' },
-    { value: '50+', label: 'Integrations' },
-    { value: '99.9%', label: 'Uptime SLA' }
+const STEPS = [
+    { n: '01', title: 'Design', desc: 'Drop nodes onto the infinite canvas, configure each step, connect with edges.', icon: IconWand, color: '#009EFF' },
+    { n: '02', title: 'Test', desc: 'Run interactively, inspect every node output, tweak until perfect.', icon: IconPlayerPlay, color: '#A855F7' },
+    { n: '03', title: 'Deploy', desc: 'One click publishes a production REST endpoint, ready to call from anywhere.', icon: IconRocket, color: '#00FF6A' }
 ]
 
 const TESTIMONIALS = [
-    {
-        quote: 'Haxon Flow cut our AI feature development time by 70%. We shipped a customer support agent in two days.',
-        author: 'Sarah Chen',
-        role: 'CTO, Meridian Labs',
-        initials: 'SC',
-        color: '#6366F1'
-    },
-    {
-        quote: "The visual canvas makes it incredibly easy for non-engineers to build complex workflows. It's genuinely revolutionary.",
-        author: 'Marcus Williams',
-        role: 'Head of Product, Nexus AI',
-        initials: 'MW',
-        color: '#A855F7'
-    },
-    {
-        quote: 'We replaced 3 separate ML services with one Haxon Flow pipeline. Costs down 60%, reliability up.',
-        author: 'Priya Nair',
-        role: 'Data Engineering Lead, Stackr',
-        initials: 'PN',
-        color: '#22D3EE'
-    }
+    { quote: 'Haxon Flow cut our AI feature development time by 70%. We shipped a full customer support agent in two days.', author: 'Sarah Chen', role: 'CTO, Meridian Labs', color: '#009EFF', initials: 'SC' },
+    { quote: "The canvas makes it easy for non-engineers to build complex workflows. It's genuinely revolutionary for our team.", author: 'Marcus Williams', role: 'Head of Product, Nexus AI', color: '#A855F7', initials: 'MW' },
+    { quote: 'We replaced 3 separate ML microservices with one Haxon Flow pipeline. Costs down 60%, reliability dramatically up.', author: 'Priya Nair', role: 'Data Engineering Lead, Stackr', color: '#00FF6A', initials: 'PN' }
 ]
 
 export default function Landing() {
+    useReveal()
+    const { play } = useSound()
+    const [menuOpen, setMenuOpen] = useState(false)
+
+    const handleCTA = useCallback(() => { play('click') }, [play])
+
     return (
-        <div className='min-h-screen bg-background text-foreground font-body overflow-x-hidden'>
+        <div className='min-h-screen bg-background text-foreground overflow-x-hidden font-body'>
+
             {/* ── Nav ── */}
-            <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border/40 bg-background/70 backdrop-blur-xl'>
+            <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 sm:px-8 py-4 border-b border-border/30 bg-background/80 backdrop-blur-2xl'>
                 <Logo />
                 <div className='hidden md:flex items-center gap-8 text-sm text-muted-foreground'>
-                    {['Features', 'Templates', 'Docs', 'Pricing'].map((item) => (
-                        <a key={item} href='#' className='hover:text-foreground transition-colors'>
+                    {['Features', 'Docs', 'Templates', 'Pricing'].map((item) => (
+                        <a key={item} href='#' onClick={() => play('hover')}
+                            className='hover:text-foreground transition-colors relative group'>
                             {item}
+                            <span className='absolute -bottom-0.5 left-0 w-0 h-px bg-primary transition-all group-hover:w-full' />
                         </a>
                     ))}
                 </div>
-                <div className='flex items-center gap-3'>
-                    <Button variant='ghost' size='sm' asChild>
-                        <Link to='/chatflows'>Sign In</Link>
+                <div className='flex items-center gap-2'>
+                    <Button variant='ghost' size='sm' asChild onClick={handleCTA}>
+                        <Link to='/auth/login'>Sign In</Link>
                     </Button>
-                    <Button variant='gradient' size='sm' asChild>
-                        <Link to='/chatflows'>
-                            Start Free <IconArrowRight size={14} />
-                        </Link>
+                    <Button variant='gradient' size='sm' asChild onClick={handleCTA}>
+                        <Link to='/chatflows'>Open Studio <IconArrowRight size={13} /></Link>
                     </Button>
                 </div>
             </nav>
 
             {/* ── Hero ── */}
-            <section className='relative flex flex-col items-center justify-center min-h-screen px-6 pt-24 pb-16 text-center overflow-hidden'>
-                <NodeCanvas />
+            <section className='relative flex flex-col items-center justify-center min-h-screen px-5 sm:px-8 pt-28 pb-20 text-center overflow-hidden'>
+                <NeuralCanvas />
+                <div className='absolute inset-0 bg-grid opacity-20 pointer-events-none' />
+                <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-primary/6 blur-[150px] pointer-events-none' />
+                <div className='absolute top-1/3 left-1/4 w-[300px] h-[300px] rounded-full bg-purple/4 blur-[100px] pointer-events-none' />
 
-                {/* Grid bg */}
-                <div className='absolute inset-0 bg-grid opacity-30' />
-
-                {/* Radial glow */}
-                <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[120px] pointer-events-none' />
-                <div className='absolute top-1/3 left-1/3 w-[300px] h-[300px] rounded-full bg-cyan/6 blur-[100px] pointer-events-none' />
-
-                {/* Content */}
-                <div className='relative z-10 max-w-4xl mx-auto'>
-                    <div className='animate-slide-up'>
-                        <Badge variant='cyan' className='mb-6 px-4 py-1.5 text-xs font-mono gap-2'>
-                            <span className='h-1.5 w-1.5 rounded-full bg-cyan animate-pulse' />
-                            AI Workflow Studio — Now in Beta
+                <div className='relative z-10 max-w-5xl mx-auto'>
+                    <div className='animate-slide-up flex justify-center mb-6'>
+                        <Badge variant='outline' className='gap-2 px-4 py-1.5 text-xs font-mono border-primary/30 bg-primary/5 text-primary'>
+                            <span className='h-1.5 w-1.5 rounded-full bg-primary animate-pulse' />
+                            AI Workflow Studio · Now in Beta
+                            <IconArrowUpRight size={11} />
                         </Badge>
                     </div>
 
-                    <h1 className='animate-slide-up stagger-1 font-display text-5xl sm:text-6xl md:text-7xl font-800 tracking-tight leading-none mb-6'>
-                        Build <span className='gradient-text'>AI Workflows</span>
+                    <h1 className='animate-slide-up stagger-1 font-serif text-6xl sm:text-7xl md:text-8xl leading-[0.95] tracking-tight mb-6'>
+                        <span className='text-foreground'>Build AI</span>
                         <br />
-                        <span className='text-foreground/70'>Visually. Ship Fast.</span>
+                        <em className='gradient-text not-italic'>Workflows</em>
+                        <br />
+                        <span className='text-foreground/50 text-5xl sm:text-6xl md:text-7xl font-display font-normal'>Visually. Ship Fast.</span>
                     </h1>
 
-                    <p className='animate-slide-up stagger-2 max-w-xl mx-auto text-lg text-muted-foreground leading-relaxed mb-10'>
-                        Connect LLMs, tools, and data sources in a drag-and-drop canvas. No infrastructure. No boilerplate. Just outcomes.
+                    <p className='animate-slide-up stagger-2 max-w-lg mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed mb-10'>
+                        Connect LLMs, tools, and data in a drag-and-drop canvas. No infrastructure. No boilerplate. Just outcomes.
                     </p>
 
-                    <div className='animate-slide-up stagger-3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16'>
-                        <Button variant='glow' size='xl' asChild className='w-full sm:w-auto'>
+                    <div className='animate-slide-up stagger-3 flex flex-col sm:flex-row items-center justify-center gap-3 mb-16'>
+                        <Button variant='glow' size='xl' asChild className='glow-primary w-full sm:w-auto' onClick={handleCTA}>
                             <Link to='/chatflows'>
-                                Open Studio
-                                <IconArrowRight size={18} />
+                                Open Studio <IconArrowRight size={16} />
                             </Link>
                         </Button>
-                        <Button variant='outline' size='xl' asChild className='w-full sm:w-auto'>
-                            <Link to='/marketplaces'>Browse Templates</Link>
+                        <Button variant='outline' size='xl' asChild className='w-full sm:w-auto' onClick={handleCTA}>
+                            <Link to='/auth/signup'>
+                                Start Free <IconSparkles size={14} />
+                            </Link>
                         </Button>
                     </div>
 
-                    {/* Floating node preview */}
-                    <div className='animate-slide-up stagger-4 relative mx-auto max-w-3xl'>
-                        <div className='border-gradient rounded-2xl p-4 glass shadow-2xl shadow-primary/10'>
-                            {/* Mock canvas preview */}
-                            <div className='relative rounded-xl bg-background/80 overflow-hidden h-52 sm:h-64 border border-border/50'>
-                                <div className='absolute inset-0 bg-dot opacity-20' />
-                                {/* Fake node cards */}
-                                {[
-                                    { x: '8%', y: '20%', label: 'HTTP Trigger', color: '#6366F1', type: 'Trigger' },
-                                    { x: '32%', y: '15%', label: 'GPT-4o', color: '#A855F7', type: 'LLM' },
-                                    { x: '32%', y: '58%', label: 'Memory', color: '#22D3EE', type: 'Memory' },
-                                    { x: '57%', y: '30%', label: 'Web Search', color: '#F59E0B', type: 'Tool' },
-                                    { x: '57%', y: '62%', label: 'Parser', color: '#10B981', type: 'Chain' },
-                                    { x: '80%', y: '42%', label: 'Response', color: '#6366F1', type: 'Output' }
-                                ].map((node, i) => (
-                                    <div
-                                        key={i}
-                                        className='absolute flex flex-col gap-0.5'
-                                        style={{ left: node.x, top: node.y, animationDelay: `${i * 0.1}s` }}
-                                    >
-                                        <div
-                                            className={cn(
-                                                'rounded-lg border px-2 py-1.5 text-[9px] font-mono shadow-lg backdrop-blur-sm animate-slide-up'
-                                            )}
-                                            style={{
-                                                borderColor: node.color + '40',
-                                                background: node.color + '12',
-                                                color: node.color,
-                                                animationDelay: `${0.5 + i * 0.08}s`
-                                            }}
-                                        >
-                                            <div className='text-[8px] text-muted-foreground uppercase tracking-wider mb-0.5'>
-                                                {node.type}
-                                            </div>
-                                            {node.label}
-                                        </div>
+                    {/* Product preview */}
+                    <div className='animate-slide-up stagger-4 relative mx-auto max-w-4xl'>
+                        <div className='border-gradient rounded-2xl p-1 shadow-2xl shadow-primary/10'>
+                            <div className='rounded-xl bg-background/90 overflow-hidden border border-border/50'>
+                                {/* Toolbar */}
+                                <div className='flex items-center gap-2 px-4 py-2.5 border-b border-border/60 bg-card/40'>
+                                    <div className='flex gap-1.5'>
+                                        {['#FF5F57', '#FEBC2E', '#28C840'].map((c) => <div key={c} className='h-3 w-3 rounded-full' style={{ background: c }} />)}
                                     </div>
-                                ))}
-                                {/* SVG connector lines */}
-                                <svg className='absolute inset-0 w-full h-full pointer-events-none opacity-40'>
-                                    <defs>
-                                        <linearGradient id='lineGrad' x1='0' y1='0' x2='1' y2='0'>
-                                            <stop offset='0%' stopColor='#6366F1' stopOpacity='0.6' />
-                                            <stop offset='100%' stopColor='#22D3EE' stopOpacity='0.6' />
-                                        </linearGradient>
-                                    </defs>
-                                    <line
-                                        x1='14%'
-                                        y1='35%'
-                                        x2='32%'
-                                        y2='28%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                    <line
-                                        x1='14%'
-                                        y1='35%'
-                                        x2='32%'
-                                        y2='68%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                    <line
-                                        x1='47%'
-                                        y1='28%'
-                                        x2='57%'
-                                        y2='38%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                    <line
-                                        x1='47%'
-                                        y1='68%'
-                                        x2='57%'
-                                        y2='68%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                    <line
-                                        x1='70%'
-                                        y1='38%'
-                                        x2='80%'
-                                        y2='50%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                    <line
-                                        x1='70%'
-                                        y1='68%'
-                                        x2='80%'
-                                        y2='54%'
-                                        stroke='url(#lineGrad)'
-                                        strokeWidth='1.5'
-                                        strokeDasharray='4 3'
-                                    />
-                                </svg>
+                                    <div className='flex-1 mx-4 h-5 rounded bg-secondary/60 text-[10px] font-mono text-muted-foreground flex items-center px-3'>
+                                        canvas · untitled-flow-1
+                                    </div>
+                                    <div className='text-[10px] font-mono text-success flex items-center gap-1'>
+                                        <span className='h-1.5 w-1.5 rounded-full bg-success animate-pulse' /> saved
+                                    </div>
+                                </div>
+                                {/* Canvas */}
+                                <div className='relative h-52 sm:h-72 overflow-hidden bg-background/80'>
+                                    <div className='absolute inset-0 bg-dot opacity-15' />
+                                    {[
+                                        { x: '4%', y: '22%', label: 'HTTP Trigger', color: '#009EFF', type: 'Trigger' },
+                                        { x: '26%', y: '12%', label: 'GPT-4o', color: '#A855F7', type: 'LLM' },
+                                        { x: '26%', y: '55%', label: 'Buffer Memory', color: '#00C8FF', type: 'Memory' },
+                                        { x: '52%', y: '28%', label: 'Web Search', color: '#F59E0B', type: 'Tool' },
+                                        { x: '52%', y: '64%', label: 'Output Parser', color: '#00FF6A', type: 'Parser' },
+                                        { x: '78%', y: '42%', label: 'API Response', color: '#009EFF', type: 'Output' }
+                                    ].map((node, i) => (
+                                        <div key={i} className='absolute animate-slide-up' style={{ left: node.x, top: node.y, animationDelay: `${0.6 + i * 0.1}s` }}>
+                                            <div className='rounded-lg border px-2.5 py-1.5 text-[9px] font-mono shadow-lg backdrop-blur-sm hover:scale-105 transition-transform cursor-pointer'
+                                                style={{ borderColor: node.color + '45', background: node.color + '12', color: node.color }}>
+                                                <div className='text-[7px] uppercase tracking-widest mb-0.5 opacity-60'>{node.type}</div>
+                                                <div className='font-semibold'>{node.label}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <svg className='absolute inset-0 w-full h-full pointer-events-none' style={{ opacity: 0.35 }}>
+                                        <defs>
+                                            <marker id='arr' markerWidth='6' markerHeight='6' refX='3' refY='3' orient='auto'>
+                                                <path d='M0,0 L0,6 L6,3 z' fill='#009EFF' opacity='0.6' />
+                                            </marker>
+                                            <linearGradient id='lg1' x1='0' y1='0' x2='1' y2='0'>
+                                                <stop offset='0%' stopColor='#009EFF' stopOpacity='0.5' />
+                                                <stop offset='100%' stopColor='#A855F7' stopOpacity='0.5' />
+                                            </linearGradient>
+                                        </defs>
+                                        {[
+                                            ['10%', '35%', '26%', '25%'],
+                                            ['10%', '35%', '26%', '68%'],
+                                            ['43%', '25%', '52%', '40%'],
+                                            ['43%', '68%', '52%', '74%'],
+                                            ['68%', '40%', '78%', '54%'],
+                                            ['68%', '74%', '78%', '56%'],
+                                        ].map(([x1, y1, x2, y2], i) => (
+                                            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+                                                stroke='url(#lg1)' strokeWidth='1.5' strokeDasharray='5 3'
+                                                markerEnd='url(#arr)' />
+                                        ))}
+                                    </svg>
+                                </div>
                             </div>
                         </div>
-                        {/* Bottom glow */}
-                        <div className='absolute -bottom-10 left-1/2 -translate-x-1/2 w-2/3 h-20 bg-primary/20 blur-2xl rounded-full' />
+                        <div className='absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-16 bg-primary/15 blur-3xl rounded-full pointer-events-none' />
                     </div>
                 </div>
             </section>
 
-            {/* ── Stats bar ── */}
-            <section className='relative border-y border-border py-12 px-6 overflow-hidden'>
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-primary/3 to-transparent' />
-                <div className='relative max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-center'>
-                    {STATS.map(({ value, label }) => (
-                        <div key={label} className='animate-slide-up'>
-                            <div className='font-display text-4xl font-800 gradient-text mb-1'>{value}</div>
-                            <div className='text-sm text-muted-foreground'>{label}</div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+            {/* ── Marquee ── */}
+            <Marquee />
 
-            {/* ── Features ── */}
-            <section className='py-24 px-6'>
+            {/* ── Stats ── */}
+            <section className='py-20 px-5 sm:px-8'>
                 <div className='max-w-5xl mx-auto'>
-                    <div className='text-center mb-16'>
-                        <Badge variant='default' className='mb-4 text-xs font-mono'>
-                            Everything you need
-                        </Badge>
-                        <h2 className='font-display text-4xl font-700 tracking-tight mb-4'>The complete AI workflow platform</h2>
-                        <p className='text-muted-foreground max-w-md mx-auto'>
-                            From rapid prototyping to production deployment — every tool you need, in one place.
-                        </p>
-                    </div>
-
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'>
-                        {FEATURES.map((f, i) => {
-                            const Icon = f.icon
-                            return (
-                                <div
-                                    key={f.title}
-                                    className={cn(
-                                        'card-hover glass rounded-xl p-6 border border-border relative overflow-hidden group animate-slide-up',
-                                        `stagger-${i + 1}`
-                                    )}
-                                >
-                                    {/* Corner glow */}
-                                    <div
-                                        className='absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity'
-                                        style={{ background: f.color }}
-                                    />
-                                    {/* Icon */}
-                                    <div
-                                        className='mb-4 inline-flex rounded-xl p-2.5'
-                                        style={{ background: f.color + '18', border: `1px solid ${f.color}28` }}
-                                    >
-                                        <Icon size={20} style={{ color: f.color }} />
-                                    </div>
-                                    <h3 className='font-display text-base font-semibold mb-2'>{f.title}</h3>
-                                    <p className='text-sm text-muted-foreground leading-relaxed'>{f.desc}</p>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </section>
-
-            {/* ── How it works ── */}
-            <section className='py-24 px-6 border-y border-border relative overflow-hidden'>
-                <div className='absolute inset-0 bg-grid opacity-20' />
-                <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent' />
-                <div className='relative max-w-4xl mx-auto text-center'>
-                    <Badge variant='purple' className='mb-4 text-xs font-mono'>
-                        How it works
-                    </Badge>
-                    <h2 className='font-display text-4xl font-700 tracking-tight mb-16'>From idea to production in minutes</h2>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
+                    <div className='grid grid-cols-2 sm:grid-cols-4 gap-6'>
                         {[
-                            {
-                                step: '01',
-                                title: 'Design the flow',
-                                desc: 'Drag nodes onto the canvas, connect them with edges, configure each step.',
-                                icon: IconHierarchy2
-                            },
-                            {
-                                step: '02',
-                                title: 'Test & evaluate',
-                                desc: 'Run the flow interactively, inspect every step, adjust until perfect.',
-                                icon: IconBolt
-                            },
-                            {
-                                step: '03',
-                                title: 'Deploy as API',
-                                desc: 'One click to publish. Get a REST endpoint you can call from anywhere.',
-                                icon: IconApi
-                            }
-                        ].map((s, i) => (
-                            <div key={s.step} className={cn('relative animate-slide-up', `stagger-${i + 2}`)}>
-                                <div className='text-[80px] font-display font-800 text-border/40 leading-none mb-4'>{s.step}</div>
-                                <s.icon size={28} className='text-primary mb-3 mx-auto' />
-                                <h3 className='font-display text-lg font-semibold mb-2'>{s.title}</h3>
-                                <p className='text-sm text-muted-foreground'>{s.desc}</p>
-                                {i < 2 && (
-                                    <div className='hidden md:block absolute top-16 right-0 translate-x-1/2 text-border/40'>
-                                        <IconArrowRight size={20} />
-                                    </div>
-                                )}
+                            { value: '100', suffix: '+', label: 'AI Nodes' },
+                            { value: '20', suffix: '+', label: 'LLM Providers' },
+                            { value: '50', suffix: '+', label: 'Integrations' },
+                            { value: '99.9', suffix: '%', label: 'Uptime SLA' }
+                        ].map((s) => (
+                            <div key={s.label} className='reveal-hidden text-center p-6 glass rounded-2xl border-gradient'>
+                                <div className='font-display text-4xl sm:text-5xl font-bold gradient-text leading-none mb-2'>
+                                    <Counter target={s.value + s.suffix} />{s.suffix}
+                                </div>
+                                <div className='text-sm text-muted-foreground'>{s.label}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
+            {/* ── Features bento ── */}
+            <section className='py-20 px-5 sm:px-8'>
+                <div className='max-w-6xl mx-auto'>
+                    <div className='text-center mb-16 reveal-hidden'>
+                        <Badge variant='outline' className='mb-4 text-xs font-mono border-primary/30 bg-primary/5 text-primary'>Platform</Badge>
+                        <h2 className='font-serif text-4xl sm:text-5xl text-foreground mb-4 leading-tight'>
+                            Everything you need to<br /><em className='gradient-text not-italic'>build AI, fast.</em>
+                        </h2>
+                        <p className='text-muted-foreground max-w-md mx-auto text-sm'>From rapid prototyping to production deployment — every tool in one place.</p>
+                    </div>
+
+                    {/* Bento grid */}
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        {FEATURES.map((f, i) => (
+                            <BentoCard key={f.title} {...f} className={cn('stagger-' + (i + 1), i === 0 && 'sm:col-span-2 lg:col-span-1')}>
+                                {i === 0 && (
+                                    <div className='mt-4 flex gap-2 flex-wrap'>
+                                        {['Drag & Drop', 'No Code', '100+ Nodes'].map((t) => (
+                                            <span key={t} className='text-[10px] font-mono px-2 py-0.5 rounded-full border border-primary/20 bg-primary/8 text-primary'>{t}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </BentoCard>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── How it works ── */}
+            <section className='py-24 px-5 sm:px-8 relative overflow-hidden'>
+                <div className='absolute inset-0 bg-grid opacity-15 pointer-events-none' />
+                <div className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
+                <div className='absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent' />
+                <div className='relative max-w-5xl mx-auto'>
+                    <div className='text-center mb-16 reveal-hidden'>
+                        <Badge variant='outline' className='mb-4 text-xs font-mono border-purple/30 bg-purple/5 text-purple'>How it works</Badge>
+                        <h2 className='font-serif text-4xl sm:text-5xl text-foreground leading-tight'>
+                            Idea to production<br /><em className='gradient-text-purple not-italic'>in minutes, not months.</em>
+                        </h2>
+                    </div>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6 relative'>
+                        {/* Connector lines */}
+                        <div className='hidden md:block absolute top-14 left-1/3 right-1/3 h-px bg-gradient-to-r from-primary/30 to-purple/30' />
+                        <div className='hidden md:block absolute top-14 left-2/3 right-0 h-px bg-gradient-to-r from-purple/30 to-neon/30' />
+                        {STEPS.map((s, i) => (
+                            <div key={s.n} className='reveal-hidden flex flex-col items-center text-center group' style={{ transitionDelay: `${i * 0.1}s` }}>
+                                <div className='relative mb-6'>
+                                    <div className='h-16 w-16 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110'
+                                        style={{ background: s.color + '15', border: `1px solid ${s.color}30` }}>
+                                        <s.icon size={26} style={{ color: s.color }} />
+                                    </div>
+                                    <div className='absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border border-border flex items-center justify-center'>
+                                        <span className='font-mono text-[9px] font-bold text-muted-foreground'>{s.n}</span>
+                                    </div>
+                                </div>
+                                <h3 className='font-display text-lg font-semibold mb-2' style={{ color: s.color }}>{s.title}</h3>
+                                <p className='text-sm text-muted-foreground leading-relaxed max-w-xs'>{s.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className='mt-12 text-center reveal-hidden'>
+                        <Button variant='outline' size='lg' asChild onClick={handleCTA}>
+                            <Link to='/chatflows'>See it in action <IconArrowRight size={15} /></Link>
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Code / Visual split ── */}
+            <section className='py-24 px-5 sm:px-8'>
+                <div className='max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center'>
+                    <div className='reveal-hidden'>
+                        <Badge variant='outline' className='mb-4 text-xs font-mono border-neon/30 bg-neon/5 text-neon'>Developer First</Badge>
+                        <h2 className='font-serif text-4xl text-foreground mb-4 leading-tight'>
+                            Visual canvas,<br /><em className='gradient-text-neon not-italic'>API-first output.</em>
+                        </h2>
+                        <p className='text-muted-foreground text-sm leading-relaxed mb-6'>Every flow you build becomes a production REST API endpoint. Your team gets the visual interface, your engineers get a clean API. Everyone wins.</p>
+                        <div className='space-y-3'>
+                            {['One-click deployment with auth + rate limiting', 'OpenAPI spec auto-generated', 'WebSocket streaming support', 'SDK for Python, TypeScript & REST'].map((f) => (
+                                <div key={f} className='flex items-center gap-3 text-sm text-muted-foreground'>
+                                    <IconCheck size={14} className='text-neon shrink-0' /> {f}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className='reveal-hidden'>
+                        <div className='glass rounded-2xl border border-border overflow-hidden'>
+                            <div className='flex items-center gap-2 px-4 py-2.5 bg-secondary/30 border-b border-border'>
+                                <IconTerminal2 size={13} className='text-muted-foreground' />
+                                <span className='text-xs font-mono text-muted-foreground'>bash</span>
+                            </div>
+                            <pre className='p-5 text-xs font-mono leading-relaxed overflow-auto scrollbar-hidden'><code>
+                                <span className='text-muted-foreground'># Call your flow as a REST API</span>{'\n'}
+                                <span className='text-neon'>curl</span> <span className='text-primary'>-X POST</span> \{'\n'}
+                                {'  '}<span className='text-foreground'>https://api.haxon.io/v1/flows/</span><span className='text-warning'>support-bot</span> \{'\n'}
+                                {'  '}<span className='text-primary'>-H</span> <span className='text-foreground'>"Authorization: Bearer <span className='text-warning'>hxn_...</span>"</span> \{'\n'}
+                                {'  '}<span className='text-primary'>-d</span> <span className='text-cyan'>'{"{"}"message":"Help with billing{"}"}'</span>{'\n'}{'\n'}
+                                <span className='text-muted-foreground'># Response</span>{'\n'}
+                                <span className='text-foreground'>{'{'}</span>{'\n'}
+                                {'  '}<span className='text-primary'>"response"</span><span className='text-foreground'>: </span><span className='text-cyan'>"I'd be happy to help..."</span><span className='text-foreground'>,</span>{'\n'}
+                                {'  '}<span className='text-primary'>"tokens"</span><span className='text-foreground'>: </span><span className='text-neon'>142</span><span className='text-foreground'>,</span>{'\n'}
+                                {'  '}<span className='text-primary'>"latency_ms"</span><span className='text-foreground'>: </span><span className='text-neon'>312</span>{'\n'}
+                                <span className='text-foreground'>{'}'}</span>
+                            </code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* ── Testimonials ── */}
-            <section className='py-24 px-6'>
-                <div className='max-w-5xl mx-auto'>
-                    <div className='text-center mb-14'>
-                        <Badge variant='warning' className='mb-4 text-xs font-mono'>
-                            Loved by builders
-                        </Badge>
-                        <h2 className='font-display text-4xl font-700 tracking-tight'>Teams shipping faster with Haxon Flow</h2>
+            <section className='py-24 px-5 sm:px-8 relative overflow-hidden'>
+                <div className='absolute inset-0 bg-gradient-to-b from-transparent via-card/20 to-transparent pointer-events-none' />
+                <div className='relative max-w-6xl mx-auto'>
+                    <div className='text-center mb-16 reveal-hidden'>
+                        <Badge variant='outline' className='mb-4 text-xs font-mono border-warning/30 bg-warning/5 text-warning'>Testimonials</Badge>
+                        <h2 className='font-serif text-4xl sm:text-5xl text-foreground leading-tight'>
+                            Builders who ship<br /><em className='gradient-text not-italic'>faster with Haxon.</em>
+                        </h2>
                     </div>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
                         {TESTIMONIALS.map((t, i) => (
-                            <div
-                                key={i}
-                                className={cn('card-hover glass rounded-xl p-6 border border-border animate-slide-up', `stagger-${i + 1}`)}
-                            >
-                                <div className='flex gap-1 mb-4'>
+                            <div key={i} className={cn('reveal-hidden card-hover glass rounded-2xl p-6 border border-border', `stagger-${i + 1}`)}>
+                                <div className='flex gap-0.5 mb-4'>
                                     {Array.from({ length: 5 }).map((_, j) => (
-                                        <IconStar key={j} size={12} className='text-warning fill-warning' />
+                                        <IconStar key={j} size={13} className='text-warning fill-warning' />
                                     ))}
                                 </div>
-                                <p className='text-sm text-foreground/80 leading-relaxed mb-6 italic'>"{t.quote}"</p>
-                                <div className='flex items-center gap-3'>
-                                    <div
-                                        className='h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white'
-                                        style={{ background: t.color }}
-                                    >
+                                <p className='text-sm text-foreground/80 leading-relaxed mb-6 font-serif italic'>"{t.quote}"</p>
+                                <div className='flex items-center gap-3 pt-4 border-t border-border'>
+                                    <div className='h-9 w-9 rounded-xl flex items-center justify-center text-xs font-bold text-white font-display'
+                                        style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}80)` }}>
                                         {t.initials}
                                     </div>
                                     <div>
-                                        <div className='text-sm font-semibold'>{t.author}</div>
+                                        <div className='text-sm font-semibold text-foreground'>{t.author}</div>
                                         <div className='text-xs text-muted-foreground'>{t.role}</div>
                                     </div>
                                 </div>
@@ -483,56 +494,48 @@ export default function Landing() {
             </section>
 
             {/* ── CTA ── */}
-            <section className='py-24 px-6 text-center relative overflow-hidden'>
-                <div className='absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent' />
-                <div className='absolute inset-0 bg-grid opacity-20' />
-                <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent' />
-                <div className='absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent' />
+            <section className='py-32 px-5 sm:px-8 text-center relative overflow-hidden'>
+                <div className='absolute inset-0 bg-grid opacity-15 pointer-events-none' />
+                <div className='absolute inset-0 bg-gradient-to-b from-transparent via-primary/4 to-transparent pointer-events-none' />
+                <div className='absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent' />
+                <div className='absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent' />
+                <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[150px] pointer-events-none' />
 
-                <div className='relative max-w-2xl mx-auto'>
-                    <h2 className='font-display text-5xl font-800 tracking-tight mb-6'>
-                        Start building with <span className='gradient-text'>AI, visually.</span>
+                <div className='relative max-w-3xl mx-auto reveal-hidden'>
+                    <Badge variant='outline' className='mb-6 text-xs font-mono border-primary/30 bg-primary/8 text-primary gap-2'>
+                        <IconSparkles size={11} /> No credit card · No backend
+                    </Badge>
+                    <h2 className='font-serif text-5xl sm:text-6xl md:text-7xl text-foreground leading-[0.95] mb-6'>
+                        Start building<br /><em className='gradient-text not-italic'>AI, visually.</em>
                     </h2>
-                    <p className='text-muted-foreground mb-10 text-lg'>
-                        No signup required. Open the studio and start dragging nodes in seconds.
-                    </p>
-                    <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
-                        <Button variant='glow' size='xl' asChild>
-                            <Link to='/chatflows'>
-                                Open Studio for Free
-                                <IconArrowRight size={18} />
-                            </Link>
+                    <p className='text-muted-foreground text-lg mb-10'>Open the studio and drag your first node in 30 seconds. No setup required.</p>
+                    <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-8'>
+                        <Button variant='glow' size='xl' asChild className='glow-primary w-full sm:w-auto' onClick={handleCTA}>
+                            <Link to='/chatflows'>Open Studio Free <IconArrowRight size={16} /></Link>
                         </Button>
-                        <Button variant='outline' size='xl' asChild>
-                            <Link to='/marketplaces'>Browse Templates</Link>
+                        <Button variant='outline' size='xl' asChild className='w-full sm:w-auto' onClick={handleCTA}>
+                            <Link to='/auth/signup'>Create Account</Link>
                         </Button>
                     </div>
-                    <div className='flex items-center justify-center gap-6 mt-8 text-xs text-muted-foreground'>
-                        {['No credit card', 'No backend required', 'Open source friendly'].map((t) => (
-                            <div key={t} className='flex items-center gap-1.5'>
-                                <IconCheck size={12} className='text-success' />
-                                {t}
-                            </div>
+                    <div className='flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground'>
+                        {['No credit card', 'Open source friendly', '2-minute setup'].map((t) => (
+                            <span key={t} className='flex items-center gap-1.5'>
+                                <IconCheck size={11} className='text-neon' /> {t}
+                            </span>
                         ))}
                     </div>
                 </div>
             </section>
 
             {/* ── Footer ── */}
-            <footer className='border-t border-border py-10 px-6'>
-                <div className='max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4'>
+            <footer className='border-t border-border py-10 px-5 sm:px-8'>
+                <div className='max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5'>
                     <Logo />
-                    <p className='text-xs text-muted-foreground'>© 2026 Haxon Flow. AI Workflow Studio.</p>
+                    <p className='text-xs text-muted-foreground'>© 2026 Haxon Flow · AI Workflow Studio</p>
                     <div className='flex items-center gap-6 text-xs text-muted-foreground'>
-                        <a href='#' className='hover:text-foreground transition-colors'>
-                            Privacy
-                        </a>
-                        <a href='#' className='hover:text-foreground transition-colors'>
-                            Terms
-                        </a>
-                        <a href='#' className='hover:text-foreground transition-colors'>
-                            Docs
-                        </a>
+                        {['Privacy', 'Terms', 'Docs', 'GitHub'].map((t) => (
+                            <a key={t} href='#' className='hover:text-foreground transition-colors'>{t}</a>
+                        ))}
                     </div>
                 </div>
             </footer>
