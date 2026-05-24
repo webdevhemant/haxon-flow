@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import toolsData from '@/mock/data/tools'
@@ -14,121 +13,9 @@ import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/ske
 import { usePageLoading } from '@/hooks/usePageLoading'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSound } from '@/hooks/useSound'
+import { ToolDialog } from '@/components/dialogs/ToolDialog'
+
 const CATEGORIES = ['All', 'Search', 'Development', 'Communication', 'Data', 'Integration', 'Files', 'Utility']
-const COLORS = ['#6366F1', '#10B981', '#A855F7', '#22D3EE', '#F59E0B', '#EF4444', '#06B6D4', '#8B5CF6']
-
-const DEFAULT_CODE = `// Tool function — receives input and returns result
-async function run(input) {
-    // Your implementation here
-    return { result: input }
-}`
-
-function ToolDialog({ open, onClose, onSave, initial }) {
-    const [name, setName] = useState(initial?.name || '')
-    const [desc, setDesc] = useState(initial?.description || '')
-    const [category, setCategory] = useState(initial?.category || 'Utility')
-    const [color, setColor] = useState(initial?.iconColor || '#6366F1')
-    const [code, setCode] = useState(initial?.code || DEFAULT_CODE)
-    const isEdit = !!initial
-
-    const handleSave = () => {
-        if (!name.trim()) {
-            toast.error('Name is required')
-            return
-        }
-        onSave({
-            name: name.trim(),
-            description: desc.trim(),
-            category,
-            iconColor: color,
-            code,
-            usageCount: initial?.usageCount || 0,
-            flowCount: initial?.flowCount || 0
-        })
-        setName('')
-        setDesc('')
-        setCategory('Utility')
-        setColor('#6366F1')
-        setCode(DEFAULT_CODE)
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-2xl'>
-                <DialogHeader>
-                    <DialogTitle className='font-display'>{isEdit ? 'Edit Tool' : 'New Tool'}</DialogTitle>
-                </DialogHeader>
-                <div className='grid grid-cols-2 gap-4 py-2'>
-                    <div className='space-y-4'>
-                        <div className='space-y-1.5'>
-                            <label className='text-xs font-medium text-muted-foreground'>Tool name</label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder='e.g. Web Search' autoFocus />
-                        </div>
-                        <div className='space-y-1.5'>
-                            <label className='text-xs font-medium text-muted-foreground'>Description</label>
-                            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder='What does this tool do?' />
-                        </div>
-                        <div className='space-y-1.5'>
-                            <label className='text-xs font-medium text-muted-foreground'>Category</label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
-                            >
-                                {CATEGORIES.filter((c) => c !== 'All').map((c) => (
-                                    <option key={c} value={c}>
-                                        {c}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className='space-y-1.5'>
-                            <label className='text-xs font-medium text-muted-foreground'>Color</label>
-                            <div className='flex gap-2 flex-wrap'>
-                                {COLORS.map((c) => (
-                                    <button
-                                        key={c}
-                                        onClick={() => setColor(c)}
-                                        className={cn(
-                                            'h-6 w-6 rounded-full border-2 transition-all',
-                                            color === c ? 'border-foreground scale-110' : 'border-transparent'
-                                        )}
-                                        style={{ background: c }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground flex items-center gap-1'>
-                            <IconCode size={11} /> Implementation
-                        </label>
-                        <textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            rows={12}
-                            className='w-full text-[11px] rounded-md border border-border bg-secondary/40 px-3 py-2 text-foreground resize-none font-mono leading-relaxed'
-                        />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button variant='gradient' onClick={handleSave}>
-                        {isEdit ? (
-                            'Save Changes'
-                        ) : (
-                            <>
-                                <IconPlus size={14} /> Create Tool
-                            </>
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 export default function Tools() {
     const { play } = useSound()
@@ -139,6 +26,7 @@ export default function Tools() {
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
     const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmDuplicate, setConfirmDuplicate] = useState(null)
 
     const filtered = items.filter((t) => {
         const matchSearch =
@@ -197,7 +85,7 @@ export default function Tools() {
     return (
         <div className='space-y-6 animate-fade-in'>
             <ToolDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
-            <ToolDialog key={editing?.id} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+            {editing && <ToolDialog key={editing.id ?? editing.name} open={true} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />}
             <ConfirmDialog
                 open={!!confirmDelete}
                 onClose={() => setConfirmDelete(null)}
@@ -205,6 +93,15 @@ export default function Tools() {
                 title='Delete tool?'
                 description='This will permanently delete this tool and remove it from all flows that use it.'
                 confirmLabel='Delete tool'
+            />
+            <ConfirmDialog
+                open={!!confirmDuplicate}
+                onClose={() => setConfirmDuplicate(null)}
+                onConfirm={() => handleDuplicate(confirmDuplicate)}
+                title='Duplicate tool?'
+                description='A copy of this tool will be created.'
+                confirmLabel='Duplicate'
+                danger={false}
             />
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
@@ -262,7 +159,7 @@ export default function Tools() {
                                         <Button
                                             variant='ghost'
                                             size='icon-sm'
-                                            className='opacity-0 group-hover:opacity-100 transition-opacity'
+                                            title='More actions' className='opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity'
                                         >
                                             <IconDots size={14} />
                                         </Button>
@@ -271,7 +168,7 @@ export default function Tools() {
                                         <DropdownMenuItem onClick={() => { setEditing(tool); play('click') }}>
                                             <IconEdit size={13} /> Edit
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => { handleDuplicate(tool); play('click') }}>
+                                        <DropdownMenuItem onClick={() => { setConfirmDuplicate(tool); play('click') }}>
                                             <IconCopy size={13} /> Duplicate
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleExport(tool)}>

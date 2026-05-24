@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import assistantsData from '@/mock/data/assistants'
@@ -14,183 +13,15 @@ import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/ske
 import { usePageLoading } from '@/hooks/usePageLoading'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSound } from '@/hooks/useSound'
-const MODELS = ['gpt-4o', 'gpt-4o-mini', 'claude-opus-4-5', 'claude-sonnet-4-5', 'gemini-2.0-flash', 'llama-3.3-70b']
-const MODEL_COLORS = {
-    'gpt-4o': '#10B981',
-    'gpt-4o-mini': '#22D3EE',
-    'claude-opus-4-5': '#6366F1',
-    'claude-sonnet-4-5': '#A855F7',
-    'gemini-2.0-flash': '#F59E0B',
-    'llama-3.3-70b': '#EF4444'
-}
-const AVATARS = ['🤖', '🧠', '💡', '⚡', '🎯', '🔮', '🦾', '🌟']
-
-function AssistantDialog({ open, onClose, onSave, initial }) {
-    const [name, setName] = useState(initial?.name || '')
-    const [desc, setDesc] = useState(initial?.description || '')
-    const [model, setModel] = useState(initial?.model || 'gpt-4o')
-    const [avatar, setAvatar] = useState(initial?.avatar || '🤖')
-    const [sysPrompt, setSysPrompt] = useState(initial?.systemPrompt || 'You are a helpful AI assistant.')
-    const isEdit = !!initial
-
-    const handleSave = () => {
-        if (!name.trim()) {
-            toast.error('Name is required')
-            return
-        }
-        onSave({
-            name: name.trim(),
-            description: desc.trim(),
-            model,
-            avatar,
-            systemPrompt: sysPrompt,
-            type: 'custom',
-            conversations: initial?.conversations || 0
-        })
-        setName('')
-        setDesc('')
-        setModel('gpt-4o')
-        setAvatar('🤖')
-        setSysPrompt('You are a helpful AI assistant.')
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-lg'>
-                <DialogHeader>
-                    <DialogTitle className='font-display'>{isEdit ? 'Edit Assistant' : 'New Assistant'}</DialogTitle>
-                </DialogHeader>
-                <div className='space-y-4 py-2'>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Avatar</label>
-                        <div className='flex gap-2'>
-                            {AVATARS.map((a) => (
-                                <button
-                                    key={a}
-                                    onClick={() => setAvatar(a)}
-                                    className={cn(
-                                        'h-9 w-9 rounded-lg text-xl transition-all',
-                                        avatar === a ? 'bg-primary/20 ring-2 ring-primary' : 'bg-secondary hover:bg-secondary/80'
-                                    )}
-                                >
-                                    {a}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Name</label>
-                        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder='e.g. Customer Support Bot' autoFocus />
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Description</label>
-                        <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder='What does this assistant do?' />
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Model</label>
-                        <select
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
-                        >
-                            {MODELS.map((m) => (
-                                <option key={m} value={m}>
-                                    {m}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>System Prompt</label>
-                        <textarea
-                            value={sysPrompt}
-                            onChange={(e) => setSysPrompt(e.target.value)}
-                            rows={4}
-                            className='w-full text-xs rounded-md border border-border bg-background px-3 py-2 text-foreground resize-none'
-                            placeholder='You are a helpful assistant...'
-                        />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button variant='gradient' onClick={handleSave}>
-                        {isEdit ? (
-                            'Save Changes'
-                        ) : (
-                            <>
-                                <IconPlus size={14} /> Create
-                            </>
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-function ChatDialog({ open, onClose, assistant }) {
-    const [messages, setMessages] = useState([{ role: 'assistant', content: `Hi! I'm ${assistant?.name}. How can I help you?` }])
-    const [input, setInput] = useState('')
-
-    const send = () => {
-        if (!input.trim()) return
-        const userMsg = { role: 'user', content: input }
-        setMessages((p) => [...p, userMsg])
-        setInput('')
-        setTimeout(() => {
-            setMessages((p) => [
-                ...p,
-                { role: 'assistant', content: `I received: "${userMsg.content}". This is a demo response from ${assistant?.name}.` }
-            ])
-        }, 800)
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-lg'>
-                <DialogHeader>
-                    <DialogTitle className='font-display flex items-center gap-2'>
-                        <span className='text-xl'>{assistant?.avatar}</span> {assistant?.name}
-                    </DialogTitle>
-                </DialogHeader>
-                <div className='h-72 overflow-y-auto space-y-3 py-2 border border-border rounded-lg p-3 bg-background'>
-                    {messages.map((m, i) => (
-                        <div key={i} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
-                            <div
-                                className={cn(
-                                    'max-w-[80%] rounded-lg px-3 py-2 text-xs',
-                                    m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
-                                )}
-                            >
-                                {m.content}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className='flex gap-2'>
-                    <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && send()}
-                        placeholder='Type a message...'
-                        className='flex-1'
-                    />
-                    <Button onClick={send} variant='gradient' size='sm'>
-                        Send
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
+import { AssistantDialog, MODEL_COLORS } from '@/components/dialogs/AssistantDialog'
+import { ChatDialog } from '@/components/dialogs/ChatDialog'
 
 export default function Assistants() {
     const [search, setSearch] = useState('')
     const loading = usePageLoading()
     const { play } = useSound()
     const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmDuplicate, setConfirmDuplicate] = useState(null)
     const [items, setItems] = useState(assistantsData)
     const [showAdd, setShowAdd] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -242,7 +73,17 @@ export default function Assistants() {
                 title='Delete assistant?'
                 description='This action cannot be undone.'
                 confirmLabel='Delete'
-            />            <AssistantDialog key={editing?.id || editing?.name} open={!!editing} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />
+            />
+            <ConfirmDialog
+                open={!!confirmDuplicate}
+                onClose={() => setConfirmDuplicate(null)}
+                onConfirm={() => handleDuplicate(confirmDuplicate)}
+                title='Duplicate assistant?'
+                description='A copy of this assistant will be created.'
+                confirmLabel='Duplicate'
+                danger={false}
+            />
+            {editing && <AssistantDialog key={editing.id ?? editing.name} open={true} onClose={() => setEditing(null)} onSave={handleEdit} initial={editing} />}
             {chatWith && <ChatDialog open={!!chatWith} onClose={() => setChatWith(null)} assistant={chatWith} />}
 
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
@@ -282,7 +123,7 @@ export default function Assistants() {
                                             <Button
                                                 variant='ghost'
                                                 size='icon-sm'
-                                                className='opacity-0 group-hover:opacity-100 transition-opacity'
+                                                title='More actions' className='opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity'
                                             >
                                                 <IconDots size={14} />
                                             </Button>
@@ -291,7 +132,7 @@ export default function Assistants() {
                                             <DropdownMenuItem onClick={() => setEditing(a)}>
                                                 <IconEdit size={13} /> Edit
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleDuplicate(a)}>
+                                            <DropdownMenuItem onClick={() => { setConfirmDuplicate(a); play('click') }}>
                                                 <IconCopy size={13} /> Duplicate
                                             </DropdownMenuItem>
                                             <DropdownMenuItem

@@ -7,8 +7,8 @@ import { Card } from '@/components/ui/card'
 import { SkeletonCard, SkeletonStatCard } from '@/components/ui/skeleton'
 import { usePageLoading } from '@/hooks/usePageLoading'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { CreateFlowDialog } from '@/components/dialogs/CreateFlowDialog'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { useFlowStore } from '@/store/useFlowStore'
 import { useSound } from '@/hooks/useSound'
@@ -35,57 +35,6 @@ import {
     IconCalendar,
     IconChevronDown
 } from '@tabler/icons-react'
-
-function CreateFlowDialog({ open, onClose, onSave }) {
-    const [name, setName] = useState('')
-    const [desc, setDesc] = useState('')
-
-    const handleSave = () => {
-        if (!name.trim()) {
-            toast.error('Name is required')
-            return
-        }
-        onSave({
-            name: name.trim(),
-            description: desc.trim(),
-            deployed: false,
-            nodeCount: 0,
-            executionCount: 0,
-            tags: [],
-            color: '#6366F1'
-        })
-        setName('')
-        setDesc('')
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-md'>
-                <DialogHeader>
-                    <DialogTitle className='font-display'>New Chatflow</DialogTitle>
-                </DialogHeader>
-                <div className='space-y-4 py-2'>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Flow name</label>
-                        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder='e.g. Customer Support Bot' autoFocus />
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Description</label>
-                        <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder='What does this flow do?' />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button variant='gradient' onClick={handleSave}>
-                        <IconPlus size={14} /> Create
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 function FilterPanel({ filters, setFilters, onClose }) {
     return (
@@ -154,6 +103,7 @@ export default function Chatflows() {
     const [showCreate, setShowCreate] = useState(false)
     const [showFilter, setShowFilter] = useState(false)
     const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmDuplicate, setConfirmDuplicate] = useState(null)
     const [filters, setFilters] = useState({ status: 'all', date: 'all', size: 'all' })
     const filterRef = useRef(null)
     const { chatflows, addChatflow, deleteChatflow, updateChatflow } = useFlowStore()
@@ -232,6 +182,15 @@ export default function Chatflows() {
                 title='Delete flow?'
                 description='This will permanently remove the flow and all its data. This cannot be undone.'
                 confirmLabel='Delete flow'
+            />
+            <ConfirmDialog
+                open={!!confirmDuplicate}
+                onClose={() => setConfirmDuplicate(null)}
+                onConfirm={() => handleDuplicate(confirmDuplicate)}
+                title='Duplicate flow?'
+                description='A copy of this flow will be created.'
+                confirmLabel='Duplicate'
+                danger={false}
             />
 
             {/* Header row */}
@@ -330,7 +289,7 @@ export default function Chatflows() {
                                             <Button
                                                 variant='ghost'
                                                 size='icon-sm'
-                                                className='opacity-0 group-hover:opacity-100 transition-opacity'
+                                                title='More actions' className='opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity'
                                             >
                                                 <IconDots size={14} />
                                             </Button>
@@ -339,7 +298,7 @@ export default function Chatflows() {
                                             <DropdownMenuItem onClick={() => navigate(`/canvas/${flow.id}`)}>
                                                 <IconEdit size={13} /> Open in Canvas
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleDuplicate(flow)}>
+                                            <DropdownMenuItem onClick={() => { setConfirmDuplicate(flow); play('click') }}>
                                                 <IconCopy size={13} /> Duplicate
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
@@ -391,6 +350,7 @@ export default function Chatflows() {
                                         <IconEdit size={11} /> Edit in Canvas
                                     </Button>
                                     <Button
+                                        title={flow.deployed ? 'Unpublish' : 'Deploy'}
                                         variant='ghost'
                                         size='icon-sm'
                                         className='h-7 w-7'
@@ -424,8 +384,8 @@ export default function Chatflows() {
                             <span className='text-[10px] font-mono text-muted-foreground shrink-0 hidden sm:inline'>{flow.nodeCount || 0}n</span>
                             <span className='text-[10px] font-mono text-muted-foreground shrink-0 hidden md:inline'>{(flow.executionCount || 0).toLocaleString()} runs</span>
                             <span className='text-[10px] text-muted-foreground shrink-0 hidden lg:inline'>{formatRelativeTime(flow.updatedDate)}</span>
-                            <Button variant='ghost' size='icon-sm' className='opacity-0 group-hover:opacity-100 h-6 w-6 shrink-0 transition-opacity'
-                                onClick={(e) => { e.stopPropagation(); handleDuplicate(flow) }}>
+                            <Button title='Duplicate' variant='ghost' size='icon-sm' className='opacity-0 group-hover:opacity-100 h-6 w-6 shrink-0 transition-opacity'
+                                onClick={(e) => { e.stopPropagation(); setConfirmDuplicate(flow); play('click') }}>
                                 <IconCopy size={11} />
                             </Button>
                         </div>

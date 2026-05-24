@@ -4,19 +4,19 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useFlowStore } from '@/store/useFlowStore'
 import { toast } from 'sonner'
 import {
     IconPlus, IconSearch, IconDots, IconRobot, IconPlayerPlay,
-    IconEdit, IconCopy, IconTrash, IconBolt, IconCpu, IconBrain, IconUsersGroup
+    IconEdit, IconCopy, IconTrash, IconBolt, IconCpu, IconBrain
 } from '@tabler/icons-react'
 import { SkeletonCard, SkeletonRow, SkeletonListItem } from '@/components/ui/skeleton'
 import { usePageLoading } from '@/hooks/usePageLoading'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSound } from '@/hooks/useSound'
+import { CreateAgentDialog } from '@/components/dialogs/CreateAgentDialog'
 
 const CATEGORY_COLORS = {
     Research: '#A855F7',
@@ -27,81 +27,12 @@ const CATEGORY_COLORS = {
     Legal: '#06B6D4'
 }
 
-function CreateAgentDialog({ open, onClose, onSave }) {
-    const [name, setName] = useState('')
-    const [desc, setDesc] = useState('')
-    const [model, setModel] = useState('gpt-4o')
-
-    const handleSave = () => {
-        if (!name.trim()) {
-            toast.error('Name is required')
-            return
-        }
-        onSave({
-            name: name.trim(),
-            description: desc.trim(),
-            model,
-            deployed: false,
-            nodeCount: 0,
-            executionCount: 0,
-            tags: [],
-            category: 'Research',
-            color: '#A855F7'
-        })
-        setName('')
-        setDesc('')
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className='sm:max-w-md'>
-                <DialogHeader>
-                    <DialogTitle className='font-display flex items-center gap-2'>
-                        <IconUsersGroup size={16} className='text-primary' /> New Agent Flow
-                    </DialogTitle>
-                </DialogHeader>
-                <div className='space-y-4 py-2'>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Agent name</label>
-                        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder='e.g. Research Assistant' autoFocus />
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Description</label>
-                        <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder='What does this agent do?' />
-                    </div>
-                    <div className='space-y-1.5'>
-                        <label className='text-xs font-medium text-muted-foreground'>Base model</label>
-                        <select
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            className='w-full h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
-                        >
-                            {['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet', 'claude-3-opus', 'gemini-1.5-pro'].map((m) => (
-                                <option key={m} value={m}>
-                                    {m}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button variant='gradient' onClick={handleSave}>
-                        <IconPlus size={14} /> Create Agent
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
 export default function Agentflows() {
     const navigate = useNavigate()
     const loading = usePageLoading()
     const { play } = useSound()
     const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmDuplicate, setConfirmDuplicate] = useState(null)
     const [search, setSearch] = useState('')
     const [showCreate, setShowCreate] = useState(false)
     const { agentflows, addAgentflow, deleteAgentflow, updateAgentflow } = useFlowStore()
@@ -148,6 +79,15 @@ export default function Agentflows() {
                 title='Delete agentflow?'
                 description='This action cannot be undone.'
                 confirmLabel='Delete'
+            />
+            <ConfirmDialog
+                open={!!confirmDuplicate}
+                onClose={() => setConfirmDuplicate(null)}
+                onConfirm={() => handleDuplicate(confirmDuplicate)}
+                title='Duplicate agentflow?'
+                description='A copy of this agentflow will be created.'
+                confirmLabel='Duplicate'
+                danger={false}
             />
             <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
                 <div className='relative flex-1 max-w-xs'>
@@ -220,7 +160,7 @@ export default function Agentflows() {
                                             <Button
                                                 variant='ghost'
                                                 size='icon-sm'
-                                                className='opacity-0 group-hover:opacity-100 transition-opacity'
+                                                title='More actions' className='opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity'
                                             >
                                                 <IconDots size={14} />
                                             </Button>
@@ -229,7 +169,7 @@ export default function Agentflows() {
                                             <DropdownMenuItem onClick={() => navigate(`/canvas/${flow.id}`)}>
                                                 <IconEdit size={13} /> Open in Canvas
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleDuplicate(flow)}>
+                                            <DropdownMenuItem onClick={() => { setConfirmDuplicate(flow); play('click') }}>
                                                 <IconCopy size={13} /> Duplicate
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
